@@ -1,0 +1,25 @@
+{
+  "name": "web-agents",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/web-agents/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/web-agents/dist",
+        "main": "packages/web-agents/src/index.ts",
+        "tsConfig": "packages/web-agents/tsconfig.lib.json",
+        "assets": ["packages/web-agents/*.md"]
+      }
+    },
+    "cli": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm ts-node packages/web-agents/src/scripts/cli.ts"]
+      }
+    }
+  }
+}

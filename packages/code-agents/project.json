@@ -1,0 +1,25 @@
+{
+  "name": "code-agents",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/agents/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "cli": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm ts-node packages/agents/src/scripts/cli.ts"]
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/code-agents/dist",
+        "main": "packages/code-agents/src/index.ts",
+        "tsConfig": "packages/code-agents/tsconfig.lib.json",
+        "assets": ["packages/code-agents/*.md"]
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "code-agents-instrumentation",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/code-agents-instrumentation/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project code-agents-instrumentation --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "options": {
+        "outputPath": "packages/code-agents-instrumentation/dist",
+        "main": "packages/code-agents-instrumentation/src/index.ts",
+        "tsConfig": "packages/code-agents-instrumentation/tsconfig.lib.json",
+        "assets": ["packages/code-agents-instrumentation/*.md"]
+      },
+      "dependsOn": ["^build"]
+    }
+  }
+}

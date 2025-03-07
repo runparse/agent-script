@@ -1,0 +1,25 @@
+{
+  "name": "@runparse/web-agents",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "dependencies": {
+    "sharp": "0.33.5",
+    "turndown": "7.2.0",
+    "htmlparser2": "10.0.0"
+  },
+  "peerDependencies": {
+    "@runparse/code-agents": "workspace:*",
+    "@runparse/code-agents-instrumentation": "workspace:*",
+    "@sinclair/typebox": ">=0.34.28",
+    "playwright": ">=1.50.0"
+  },
+  "devDependencies": {
+    "@types/turndown": "5.0.5"
+  }
+}
