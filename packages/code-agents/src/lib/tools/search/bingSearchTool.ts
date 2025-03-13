@@ -38,8 +38,7 @@ export class BingSearchTool extends BaseTool<
 > {
   name = 'bingSearch';
 
-  description =
-    'A search engine. Useful for when you need to answer questions about current events.';
+  description = 'Search the web for information using Bing.';
 
   inputSchema = Type.Object(
     {
@@ -64,7 +63,7 @@ export class BingSearchTool extends BaseTool<
         query: 'string',
         options: {
           site: 'string',
-          count: 50,
+          count: 20,
           offset: 0,
           market: 'en-US',
           exclude: [],
@@ -85,7 +84,7 @@ export class BingSearchTool extends BaseTool<
     { default: [{ title: 'string', link: 'string', snippet: 'string' }] },
   );
 
-  private maxResults = 50;
+  private maxResults = 10;
 
   private endpoint = 'https://api.bing.microsoft.com/v7.0/search';
 
@@ -145,16 +144,14 @@ export class BingSearchTool extends BaseTool<
     const query = this.buildQuery(input.query, input.options);
     const url = new URL(this.endpoint);
     url.searchParams.append('q', query);
+    url.searchParams.append(
+      'count',
+      input?.options?.count?.toString() || this.maxResults.toString(),
+    );
 
     if (input.options) {
       if (input.options.market) {
         url.searchParams.append('mkt', input.options.market);
-      }
-      if (input.options.count !== undefined) {
-        url.searchParams.append(
-          'count',
-          input.options.count.toString() || this.maxResults.toString(),
-        );
       }
       if (input.options.offset !== undefined) {
         url.searchParams.append('offset', input.options.offset.toString());

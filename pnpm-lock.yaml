@@ -125,7 +125,7 @@ importers:
         specifier: 10.0.0
         version: 10.0.0
       playwright:
-        specifier: 1.50.0
+        specifier: '>=1.50.0'
         version: 1.50.0
       sharp:
         specifier: 0.33.5

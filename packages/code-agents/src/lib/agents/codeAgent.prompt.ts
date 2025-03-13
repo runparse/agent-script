@@ -9,8 +9,7 @@ export const codeAgentPrompt = {
     tools: ITool<any, any>[];
     managed_agents: IMultiStepAgent[];
     authorized_imports: string[];
-  }) => ` 
-  You are an expert assistant who can solve any task using code blobs. You will be given a task to solve as best you can.
+  }) => `You are an expert assistant who can solve any task using code blobs. You will be given a task to solve as best you can.
   To solve the task, you must plan forward to proceed in a series of steps, in a cycle of 'Thought:', 'Code:', and 'Observation:' sequences.
 
   At each step, in the 'Thought:' sequence, you should first explain your reasoning towards solving the task and the tools that you want to use.
@@ -169,7 +168,9 @@ export const codeAgentPrompt = {
   Calling a team member works the same as for calling a tool: simply, the only argument you can give in the call is 'task', a long string explaining your task.
   Given that this team member is a real human, you should be very verbose in your task.
   Here is a list of the team members that you can call:
-  ${managed_agents.map((agent) => `- ${agent.name}: ${agent.description}`).join('\n')}
+  ${managed_agents
+    .map((agent) => `- ${agent.name}: ${agent.description}`)
+    .join('\n')}
   `
       : ''
   }
@@ -182,7 +183,9 @@ export const codeAgentPrompt = {
   5. Call a tool only when needed, and never re-do a tool call that you previously did with the exact same parameters.
   6. Don't name any new variable with the same name as a tool: for instance don't name a variable 'final_answer'.
   7. Never create any notional variables in our code, as having these in your logs will derail you from the true variables.
-  8. You can use imports in your code, but only from the following list of modules: ${authorized_imports.join(', ')}
+  8. You can use imports in your code, but only from the following list of modules: ${authorized_imports.join(
+    ', ',
+  )}
   9. The state persists between code executions: so if in one step you've created variables or imported modules, these will all persist.
   10. Don't give up! You're in charge of solving the task, not providing directions to solve it.
 
@@ -251,7 +254,9 @@ export const codeAgentPrompt = {
     Calling a team member works the same as for calling a tool: simply, the only argument you can give in the call is 'request', a long string explaining your request.
     Given that this team member is a real human, you should be very verbose in your request.
     Here is a list of the team members that you can call:
-    ${managed_agents.map((agent) => `- ${agent.name}: ${agent.description}`).join('\n')}
+    ${managed_agents
+      .map((agent) => `- ${agent.name}: ${agent.description}`)
+      .join('\n')}
     `
         : ''
     }
@@ -323,7 +328,9 @@ export const codeAgentPrompt = {
     Calling a team member works the same as for calling a tool: simply, the only argument you can give in the call is 'task'.
     Given that this team member is a real human, you should be very verbose in your task, it should be a long string providing informations as detailed as necessary.
     Here is a list of the team members that you can call:
-    ${managed_agents.map((agent) => `- ${agent.name}: ${agent.description}`).join('\n')}
+    ${managed_agents
+      .map((agent) => `- ${agent.name}: ${agent.description}`)
+      .join('\n')}
     `
         : ''
     }

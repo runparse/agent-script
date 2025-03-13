@@ -2,7 +2,7 @@ import { ChatCompletionMessageParam } from 'token.js';
 import { IChatMessage } from './types';
 
 export function toChatCompletionMessageParam(
-  messages: IChatMessage[]
+  messages: IChatMessage[],
 ): ChatCompletionMessageParam[] {
   return messages.map((message) => {
     switch (message.role) {
@@ -15,7 +15,7 @@ export function toChatCompletionMessageParam(
               ({
                 type: 'image_url',
                 image_url: { url: image },
-              } as const)
+              } as const),
           );
           return {
             role: 'user',
@@ -37,11 +37,11 @@ export function toChatCompletionMessageParam(
   });
 }
 
-const MAX_LENGTH_TRUNCATE_CONTENT = 1000;
+const MAX_LENGTH_TRUNCATE_CONTENT = 10000;
 
 export function truncateContent(
   content: string,
-  maxLength: number = MAX_LENGTH_TRUNCATE_CONTENT
+  maxLength: number = MAX_LENGTH_TRUNCATE_CONTENT,
 ): string {
   if (content.length <= maxLength) {
     return content;
@@ -57,7 +57,7 @@ export function truncateContent(
 
 export function removeLeadingIndentation(
   content: string,
-  excludeFirstNonEmptyLine: boolean = true
+  excludeFirstNonEmptyLine: boolean = true,
 ): string {
   const lines = content.split('\n');
   const nonEmptyLines = lines.filter((line) => line.trim().length > 0);
@@ -65,14 +65,14 @@ export function removeLeadingIndentation(
     ? nonEmptyLines.slice(1)
     : nonEmptyLines;
   const minIndentation = Math.min(
-    ...linesToConsider.map((line) => line.match(/^\s*/)?.[0]?.length || 0)
+    ...linesToConsider.map((line) => line.match(/^\s*/)?.[0]?.length || 0),
   );
 
   return lines
     .map((line) =>
       line.startsWith(' '.repeat(minIndentation))
         ? line.slice(minIndentation)
-        : line
+        : line,
     )
     .join('\n');
 }

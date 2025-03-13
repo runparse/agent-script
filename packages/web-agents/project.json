@@ -15,10 +15,18 @@
         "assets": ["packages/web-agents/*.md"]
       }
     },
+    "postBuild": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm version patch --no-git-tag-version --no-workspaces"],
+        "cwd": "packages/web-agents"
+      }
+    },
     "cli": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["pnpm ts-node packages/web-agents/src/scripts/cli.ts"]
+        "commands": ["pnpm ts-node packages/web-agents/src/scripts/cli.ts"],
+        "cwd": "packages/web-agents"
       }
     }
   }

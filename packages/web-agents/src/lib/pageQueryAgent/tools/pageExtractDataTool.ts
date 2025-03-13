@@ -15,7 +15,7 @@ export class PageExtractDataTool extends PageTool<
 > {
   name = 'pageExtractData';
   description =
-    'Extracts data from the webpage following user instructions as a serialized JSON object / array. The URL is not needed because the tool has access to the page.';
+    'Extracts data from current webpage you are on, following user instructions as a serialized JSON object / array.';
 
   inputSchema = Type.Object(
     {
@@ -82,7 +82,7 @@ export class PageExtractDataTool extends PageTool<
     output: Static<typeof this.outputSchema>,
     agent: IPageQueryAgent,
   ) {
-    super.onAfterCall(input, output, agent);
+    await super.onAfterCall(input, output, agent);
     const historyItem = agent.navigationHistory
       .reverse()
       .find((item) => item.url === agent.page.url());

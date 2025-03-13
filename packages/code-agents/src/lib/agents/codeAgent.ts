@@ -45,7 +45,7 @@ export class CodeAgent<TOutSchema extends TSchema>
    * @returns The output if this is the final step, undefined otherwise
    */
   override async step(
-    memoryStep: ActionStep
+    memoryStep: ActionStep,
   ): Promise<Static<TOutSchema> | undefined> {
     const memoryMessages = this.writeMemoryToMessages();
 
@@ -65,7 +65,7 @@ export class CodeAgent<TOutSchema extends TSchema>
 
       this.logger.logMarkdown({
         content: modelOutput,
-        title: 'Output message of the LLM:',
+        title: 'Output message of the LLM',
       });
 
       // console.log('--------------------------------');
@@ -75,14 +75,18 @@ export class CodeAgent<TOutSchema extends TSchema>
 
       try {
         const { result, output, isFinalAnswer } = await this.executeScript(
-          this.parseCodeOutput(modelOutput)
+          this.parseCodeOutput(modelOutput),
         );
         memoryStep.actionOutput = result;
 
         if (output) {
-          memoryStep.observations = `Execution output:\n${truncateContent(
-            output
+          memoryStep.observations = `Code execution output:\n${truncateContent(
+            output,
           )}`;
+          this.logger.logMarkdown({
+            content: output,
+            title: 'Code execution output',
+          });
         }
 
         // Return output if this appears to be the final answer
@@ -105,7 +109,7 @@ export class CodeAgent<TOutSchema extends TSchema>
   }
 
   async executeScript(
-    scriptCode: string
+    scriptCode: string,
   ): Promise<{ result: unknown; output: string; isFinalAnswer: boolean }> {
     const scriptToolCallResults: { result: unknown; name: string }[] = [];
     const bufferedConsole = new BufferedConsole();
@@ -115,7 +119,7 @@ export class CodeAgent<TOutSchema extends TSchema>
         try {
           const result = await this.executeToolCall(
             tool.name,
-            input as TSchema
+            input as TSchema,
           );
           scriptToolCallResults.push({ result, name: tool.name });
           return result;
@@ -134,7 +138,7 @@ export class CodeAgent<TOutSchema extends TSchema>
         `(async () => {
           ${scriptCode}
         })()`,
-        this.sandbox
+        this.sandbox,
       );
       return {
         result:

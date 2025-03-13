@@ -1,4 +1,11 @@
-import { Static, TBoolean, TObject, TString, Type } from '@sinclair/typebox';
+import {
+  Static,
+  TBoolean,
+  TObject,
+  TOptional,
+  TString,
+  Type,
+} from '@sinclair/typebox';
 import { PageActionTool } from './pageTool';
 import {
   IPageQueryAgent,
@@ -7,7 +14,7 @@ import {
 
 export class PageNavigateLinkTool extends PageActionTool<
   TObject<{ linkText: TString }>,
-  TBoolean
+  TObject<{ success: TBoolean; message: TOptional<TString> }>
 > {
   name = 'pageNavigateLink';
   description = 'Navigates to a link on the page';
@@ -19,7 +26,13 @@ export class PageNavigateLinkTool extends PageActionTool<
     { default: { linkText: 'string' } },
   );
 
-  outputSchema = Type.Boolean();
+  outputSchema = Type.Object(
+    {
+      success: Type.Boolean(),
+      message: Type.Optional(Type.String()),
+    },
+    { default: { success: true, message: 'string' } },
+  );
 
   private historyItem: IPageQueryAgentNavigationHistoryItem | undefined;
 
@@ -33,31 +46,39 @@ export class PageNavigateLinkTool extends PageActionTool<
       .all();
 
     if (links.length === 0) {
-      return false;
+      return { success: false, message: 'no links found' };
     }
 
     for (const link of links) {
       const href = await link.getAttribute('href');
       const url = href?.startsWith('http') ? href : `${agent.page.url}${href}`;
-      if (url && !agent.navigationHistory.find((item) => item.url === url)) {
+      if (url) {
+        if (!agent.navigationHistory.find((item) => item.url === url)) {
+          this.historyItem = {
+            url,
+            timestamp: Date.now(),
+            status: 'loading',
+          };
+          agent.navigationHistory.push(this.historyItem);
+          await link.click();
+          return { success: true };
+        }
+      } else {
         this.historyItem = {
           url,
           timestamp: Date.now(),
-          status: 'pending',
+          status: 'skipped',
         };
-        agent.navigationHistory.push(this.historyItem);
-        await link.click();
-        return true;
       }
     }
-    return false;
+    return { success: false, message: 'failed to navigate' };
   }
 
   override async onBeforeCall(
     input: Static<typeof this.inputSchema>,
     agent: IPageQueryAgent,
   ) {
-    super.onBeforeCall(input, agent);
+    await super.onBeforeCall(input, agent);
     this.historyItem = undefined;
   }
 
@@ -66,7 +87,7 @@ export class PageNavigateLinkTool extends PageActionTool<
     output: Static<typeof this.outputSchema>,
     agent: IPageQueryAgent,
   ) {
-    super.onAfterCall(input, output, agent);
+    await super.onAfterCall(input, output, agent);
     if (this.historyItem) {
       this.historyItem.status = 'success';
     }

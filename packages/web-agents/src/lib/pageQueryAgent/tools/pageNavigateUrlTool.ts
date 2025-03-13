@@ -1,4 +1,11 @@
-import { Static, TString, Type, TObject, TBoolean } from '@sinclair/typebox';
+import {
+  Static,
+  TString,
+  Type,
+  TObject,
+  TBoolean,
+  TOptional,
+} from '@sinclair/typebox';
 import { PageActionTool } from './pageTool';
 import {
   IPageQueryAgent,
@@ -7,7 +14,7 @@ import {
 
 export class PageNavigateUrlTool extends PageActionTool<
   TObject<{ url: TString }>,
-  TBoolean
+  TObject<{ success: TBoolean; message: TOptional<TString> }>
 > {
   name = 'pageNavigateUrl';
   description = 'Navigates to a specific URL';
@@ -19,7 +26,13 @@ export class PageNavigateUrlTool extends PageActionTool<
     { default: { url: 'string' } },
   );
 
-  outputSchema = Type.Boolean();
+  outputSchema = Type.Object(
+    {
+      success: Type.Boolean(),
+      message: Type.Optional(Type.String()),
+    },
+    { default: { success: true, message: 'string' } },
+  );
 
   private historyItem: IPageQueryAgentNavigationHistoryItem | undefined;
 
@@ -32,23 +45,28 @@ export class PageNavigateUrlTool extends PageActionTool<
         (historyItem) => historyItem.url === input.url,
       )
     ) {
-      return false;
+      this.historyItem = {
+        url: input.url,
+        timestamp: Date.now(),
+        status: 'skipped',
+      };
+      return { success: false, message: 'already visited, skipping' };
     }
     this.historyItem = {
       url: input.url,
       timestamp: Date.now(),
-      status: 'pending',
+      status: 'loading',
     };
     agent.navigationHistory.push(this.historyItem);
     await agent.page.goto(input.url, { timeout: 10000 });
-    return true;
+    return { success: true };
   }
 
   override async onBeforeCall(
     input: Static<typeof this.inputSchema>,
     agent: IPageQueryAgent,
   ) {
-    super.onBeforeCall(input, agent);
+    await super.onBeforeCall(input, agent);
     this.historyItem = undefined;
   }
 
@@ -57,7 +75,7 @@ export class PageNavigateUrlTool extends PageActionTool<
     output: Static<typeof this.outputSchema>,
     agent: IPageQueryAgent,
   ) {
-    super.onAfterCall(input, output, agent);
+    await super.onAfterCall(input, output, agent);
     if (this.historyItem) {
       this.historyItem.status = 'success';
     }

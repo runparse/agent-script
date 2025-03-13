@@ -18,7 +18,7 @@ import { TObjectWrapper } from '@runparse/code-agents';
 export interface IPageQueryAgentNavigationHistoryItem {
   url: string;
   timestamp: number;
-  status: 'pending' | 'success' | 'error';
+  status: 'loading' | 'success' | 'error' | 'skipped';
   dataExtraction?: {
     data: any;
     error?: string;
@@ -98,12 +98,15 @@ export class PageQueryAgent
 
   override writeMemoryToMessages(summaryMode: boolean): IChatMessage[] {
     const messages = super.writeMemoryToMessages(summaryMode);
-    messages.push({
-      role: 'user',
-      content: `FYI, here is a list of urls you already visited:\n${this.navigationHistory
-        .map((item) => `- ${item.url}`)
-        .join('\n')}`,
-    });
+    if (this.navigationHistory.length > 0) {
+      const currentLocationString = `You are currently at this url: ${this.page.url()}\n\n`;
+      messages.push({
+        role: 'user',
+        content: `${currentLocationString}Do not navigate to any of the following urls you have visited:\n${this.navigationHistory
+          .map((item) => `- ${item.url}`)
+          .join('\n')}`,
+      });
+    }
     return messages;
   }
 }

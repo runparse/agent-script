@@ -19,8 +19,8 @@ export class ParticleAgent
     super({
       ...props,
       description: `You object is to collect data as JSON objects with the following structure:\n\n${JSON.stringify(
-        props.dataObjectSchema.jsonSchemaInstance
-      )} using the 'notebookWrite' tool whenever you find relevant data after extracting data from a webpage or searching the web. You must call the 'notebookWrite' at least once before the using the 'finalAnswer' tool if any data is found. You can close popups, load more data, and extract data following user instructions on a webpage. Always use the 'pageExtractData' tool before using the 'pageLoadMoreData' tool. Use the 'pageLoadMoreData' tool for a maximum of 3 times. If there are no relevant data on the page, write an explanation and any relevant information you can find.`,
+        props.dataObjectSchema.jsonSchemaInstance,
+      )} using the 'notebookWrite' tool whenever you find relevant data after extracting data from a webpage or searching the web. Visit every link from the results after doing a web search. You can close popups, load more data, and extract data following user instructions on a webpage. Navigate away from the page if you see a captcha. Always use the 'pageExtractData' tool before using the 'pageLoadMoreData' tool. You must call the 'notebookWrite' at least once before the using the 'finalAnswer' tool to save any relevant data.`,
     });
     this.tools.push(new BingSearchTool());
   }
