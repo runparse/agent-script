@@ -51,6 +51,7 @@ export interface ITool<
   description: string;
   inputSchema: TInputSchema;
   outputSchema?: TOutputSchema;
+  getSignature(): string;
 
   onBeforeCall(
     input: Static<TInputSchema>,

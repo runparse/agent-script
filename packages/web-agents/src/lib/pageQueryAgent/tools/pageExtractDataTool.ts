@@ -15,11 +15,14 @@ export class PageExtractDataTool extends PageTool<
 > {
   name = 'pageExtractData';
   description =
-    'Extracts data from current webpage you are on, following user instructions as a serialized JSON object / array.';
+    'Extracts data from current webpage you are on, following user instructions.';
 
   inputSchema = Type.Object(
     {
-      instructions: Type.String(),
+      instructions: Type.String({
+        description:
+          'Describe the type of data you want to extract from the webpage.',
+      }),
     },
     { default: { instructions: 'string' } },
   );

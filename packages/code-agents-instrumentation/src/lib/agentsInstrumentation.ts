@@ -11,6 +11,7 @@ import {
 import {
   MultiStepAgent,
   CodeAgent,
+  TsCodeAgent,
   ChatModel,
   IChatMessage,
   ActionStep,
@@ -39,6 +40,10 @@ export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumenta
     this._diag.debug('Patching CodeAgent methods');
     this.patchCodeAgent();
 
+    // Instrument TsCodeAgent methods
+    this._diag.debug('Patching TsCodeAgent methods');
+    this.patchTsCodeAgent();
+
     // Instrument ChatModel methods
     this._diag.debug('Patching ChatModel methods');
     this.patchChatModel({ omitImageData: this._config.omitImageData });
@@ -51,6 +56,52 @@ export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumenta
       (original) =>
         async function patchedStep(
           this: CodeAgent<any>,
+          memoryStep: ActionStep,
+        ) {
+          const span = trace
+            .getTracer(COMPONENT)
+            .startSpan(`Step ${memoryStep.stepNumber}`, {
+              attributes: {
+                [SemanticConventions.OPENINFERENCE_SPAN_KIND]:
+                  OpenInferenceSpanKind.CHAIN,
+                [SemanticConventions.INPUT_VALUE]: JSON.stringify(memoryStep),
+              },
+            });
+
+          return context.with(
+            trace.setSpan(context.active(), span),
+            async () => {
+              try {
+                const result = await original.call(this, memoryStep);
+                span.setStatus({ code: SpanStatusCode.OK });
+                span.setAttribute(
+                  SemanticConventions.OUTPUT_VALUE,
+                  memoryStep.observations || 'No observations',
+                );
+                return result;
+              } catch (error: any) {
+                span.setStatus({
+                  code: SpanStatusCode.ERROR,
+                  message: error.message,
+                });
+                span.recordException(error);
+                throw error;
+              } finally {
+                span.end();
+              }
+            },
+          );
+        },
+    );
+  }
+
+  private patchTsCodeAgent(): void {
+    this._wrap(
+      TsCodeAgent.prototype,
+      'step',
+      (original) =>
+        async function patchedStep(
+          this: TsCodeAgent<any>,
           memoryStep: ActionStep,
         ) {
           const span = trace

@@ -1,5 +1,6 @@
 import { IMultiStepAgent, ITool } from '../types';
 import { Static, TSchema } from '@sinclair/typebox';
+import { typeboxToTsString } from '../utils';
 
 export abstract class BaseTool<
   TInputSchema extends TSchema = any,
@@ -10,6 +11,12 @@ export abstract class BaseTool<
   abstract description: string;
   abstract inputSchema: TInputSchema;
   abstract outputSchema?: TOutputSchema;
+
+  getSignature(): string {
+    return `// ${this.description}\nasync function ${
+      this.name
+    }(params: ${typeboxToTsString(this.inputSchema)})`;
+  }
 
   abstract call(
     input: Static<TInputSchema>,

@@ -4,10 +4,10 @@ import { PageLoadMoreDataTool } from './tools/pageLoadMoreDataTool';
 import { PageNavigateLinkTool } from './tools/pageNavigateLinkTool';
 import { PageNavigateUrlTool } from './tools/pageNavigateUrlTool';
 import {
-  CodeAgent,
+  TsCodeAgent,
   IChatMessage,
-  ICodeAgent,
-  ICodeAgentProps,
+  ITsCodeAgent,
+  ITsCodeAgentProps,
 } from '@runparse/code-agents';
 import { TSchema, TString } from '@sinclair/typebox';
 import { PartialBy } from '@runparse/code-agents';
@@ -26,7 +26,7 @@ export interface IPageQueryAgentNavigationHistoryItem {
 }
 
 export interface IPageQueryAgent<TOutSchema extends TSchema = TString>
-  extends ICodeAgent<TOutSchema> {
+  extends ITsCodeAgent<TOutSchema> {
   page: Page;
   instructions: string;
   navigationHistory: IPageQueryAgentNavigationHistoryItem[];
@@ -34,7 +34,10 @@ export interface IPageQueryAgent<TOutSchema extends TSchema = TString>
 }
 
 export interface IPageQueryAgentProps<TOutSchema extends TSchema>
-  extends Omit<PartialBy<ICodeAgentProps<TOutSchema>, 'description'>, 'tools'> {
+  extends Omit<
+    PartialBy<ITsCodeAgentProps<TOutSchema>, 'description'>,
+    'tools'
+  > {
   page: Page;
   instructions: string;
   navigationHistory?: IPageQueryAgentNavigationHistoryItem[];
@@ -47,7 +50,7 @@ export interface IPageQueryAgentProps<TOutSchema extends TSchema>
 }
 
 export class PageQueryAgent
-  extends CodeAgent<TString>
+  extends TsCodeAgent<TString>
   implements IPageQueryAgent<TString>
 {
   page: Page;

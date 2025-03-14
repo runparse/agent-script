@@ -1,5 +1,6 @@
 import { ChatCompletionMessageParam } from 'token.js';
 import { IChatMessage } from './types';
+import { TObject, TSchema } from '@sinclair/typebox';
 
 export function toChatCompletionMessageParam(
   messages: IChatMessage[],
@@ -75,4 +76,47 @@ export function removeLeadingIndentation(
         : line,
     )
     .join('\n');
+}
+
+export function typeboxToTsString(schema: TSchema): string {
+  // Handle literal types (if a constant is provided)
+  if ('const' in schema) {
+    return JSON.stringify((schema as any).const);
+  }
+
+  // Handle objects recursively
+  if (schema.type === 'object') {
+    const objSchema = schema as TObject;
+    const lines = Object.entries(objSchema.properties).map(([key, value]) => {
+      // Check if the property is optional.
+      const isOptional = !objSchema.required?.includes(key);
+      return `${key}${isOptional ? '?' : ''}: ${typeboxToTsString(value)}`;
+    });
+    return `{\n  ${lines.join('\n  ')}\n}`;
+  }
+
+  // Handle arrays recursively
+  if (schema.type === 'array') {
+    const arraySchema = schema as any;
+    return `${typeboxToTsString(arraySchema.items)}[]`;
+  }
+
+  const descriptionComment = schema.description
+    ? ` // ${schema.description}`
+    : '';
+  // Handle primitive types
+  switch (schema.type) {
+    case 'string':
+      return `string;${descriptionComment}`;
+    case 'number':
+      return `number;${descriptionComment}`;
+    case 'integer': // Treat integer as number
+      return `number;${descriptionComment}`;
+    case 'boolean':
+      return `boolean;${descriptionComment}`;
+    case 'null':
+      return `null;${descriptionComment}`;
+    default:
+      return `unknown;${descriptionComment}`;
+  }
 }
