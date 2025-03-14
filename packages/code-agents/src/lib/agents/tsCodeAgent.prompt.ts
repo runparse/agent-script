@@ -132,6 +132,7 @@ export const tsCodeAgentPrompt: IAgentPrompt = {
   9. The state persists between code executions: so if in one step you've created variables or imported modules, these will all persist.
   10. Don't give up! You're in charge of solving the task, not providing directions to solve it.
   11. For intermedia variables, programatically pass values as input for external function calls instead of typing them out. For example, use \`navigate({url: searchResult[0].link})\` instead of \`navigate({url: "https://example.com"})\`.
+  12. Do not use console.log to print the result of external function calls.
 
   {{ description | safe }}
 

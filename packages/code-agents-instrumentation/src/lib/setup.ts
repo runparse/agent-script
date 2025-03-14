@@ -30,7 +30,10 @@ export function setup(
 
   registerInstrumentations({
     instrumentations: [
-      new AgentsInstrumentation({ omitImageData: options.omitImageData }),
+      new AgentsInstrumentation(
+        { omitImageData: options.omitImageData },
+        { base64ImageMaxLength: 256 * 1024 },
+      ),
     ],
   });
 

@@ -2,10 +2,13 @@ import {
   InstrumentationBase,
   InstrumentationConfig,
 } from '@opentelemetry/instrumentation';
-import { context, trace, SpanStatusCode } from '@opentelemetry/api';
+import { context, trace, SpanStatusCode, SpanKind } from '@opentelemetry/api';
 import {
   SemanticConventions,
   OpenInferenceSpanKind,
+  MimeType,
+  LLMProvider,
+  LLMSystem,
 } from '@arizeai/openinference-semantic-conventions';
 
 import {
@@ -18,7 +21,9 @@ import {
   IChatResponseMetadata,
 } from '@runparse/code-agents';
 import { CompletionNonStreaming } from 'token.js/dist/chat';
-import { transformChatRequestMessages } from './utils';
+import { getLLMInputMessagesAttributes } from './utils';
+
+import { OITracer, TraceConfigOptions } from '@arizeai/openinference-core';
 
 const COMPONENT = '@runparse/code-agents-instrumentation';
 
@@ -27,8 +32,14 @@ export interface AgentsInstrumentationConfig extends InstrumentationConfig {
 }
 
 export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumentationConfig> {
-  constructor(config: AgentsInstrumentationConfig = { omitImageData: true }) {
+  private oiTracer: OITracer;
+
+  constructor(
+    config: AgentsInstrumentationConfig = { omitImageData: true },
+    traceConfig?: TraceConfigOptions,
+  ) {
     super('@runparse/code-agents-instrumentation', '1.0.0', config);
+    this.oiTracer = new OITracer({ tracer: this.tracer, traceConfig });
   }
 
   protected init(): void {
@@ -236,6 +247,7 @@ export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumenta
   }
 
   private patchChatModel({ omitImageData }: { omitImageData: boolean }): void {
+    const instrumentation = this;
     this._wrap(
       ChatModel.prototype,
       'chatCompletion',
@@ -244,15 +256,21 @@ export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumenta
           this: ChatModel,
           request: CompletionNonStreaming<any>,
         ) {
-          const span = trace.getTracer(COMPONENT).startSpan('Model', {
+          const attributes = getLLMInputMessagesAttributes(request);
+          const { messages: _messages, ...invocationParameters } = request;
+          const span = instrumentation.oiTracer.startSpan('Model', {
+            kind: SpanKind.INTERNAL,
             attributes: {
               [SemanticConventions.OPENINFERENCE_SPAN_KIND]:
                 OpenInferenceSpanKind.LLM,
-              [SemanticConventions.INPUT_VALUE]: JSON.stringify(
-                transformChatRequestMessages(request.messages, {
-                  omitImageData,
-                }),
-              ),
+              [SemanticConventions.LLM_MODEL_NAME]: request.model || 'gpt-4o',
+              [SemanticConventions.INPUT_VALUE]: JSON.stringify(request),
+              [SemanticConventions.INPUT_MIME_TYPE]: MimeType.JSON,
+              [SemanticConventions.LLM_INVOCATION_PARAMETERS]:
+                JSON.stringify(invocationParameters),
+              [SemanticConventions.LLM_SYSTEM]: LLMSystem.OPENAI,
+              [SemanticConventions.LLM_PROVIDER]: LLMProvider.OPENAI,
+              ...attributes,
             },
           });
 
@@ -274,16 +292,16 @@ export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumenta
                   result.metadata.usage.completionTokens,
                 );
                 span.setAttribute(
-                  SemanticConventions.LLM_MODEL_NAME,
-                  this.options.model,
-                );
-                span.setAttribute(
                   SemanticConventions.LLM_TOKEN_COUNT_TOTAL,
                   result.metadata.usage.totalTokens,
                 );
                 span.setAttribute(
-                  SemanticConventions.OUTPUT_VALUE,
-                  JSON.stringify(result),
+                  `${SemanticConventions.LLM_OUTPUT_MESSAGES}.0.${SemanticConventions.MESSAGE_ROLE}`,
+                  result.message.role,
+                );
+                span.setAttribute(
+                  `${SemanticConventions.LLM_OUTPUT_MESSAGES}.0.${SemanticConventions.MESSAGE_CONTENT}`,
+                  result.message.content,
                 );
                 return result;
               } catch (error: any) {

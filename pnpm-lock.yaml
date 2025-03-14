@@ -88,6 +88,9 @@ importers:
 
   packages/code-agents-instrumentation:
     dependencies:
+      '@arizeai/openinference-core':
+        specifier: 1.0.0
+        version: 1.0.0
       '@arizeai/openinference-semantic-conventions':
         specifier: 1.0.0
         version: 1.0.0
@@ -146,6 +149,9 @@ packages:
 
   '@anthropic-ai/sdk@0.24.3':
     resolution: {integrity: sha512-916wJXO6T6k8R6BAAcLhLPv/pnLGy7YSEBZXZ1XTFbLcTZE8oTy3oDW9WJf9KKZwMvVcePIfoTSvzXHRcGxkQQ==}
+
+  '@arizeai/openinference-core@1.0.0':
+    resolution: {integrity: sha512-lzuH626IMZ//ghRB5ClCKWNfZ/f/LUx7X2n+B6YvQX3CNze8RNrciGptgonEjaGvKiccV5fdWQ0yXR1KOpOBEg==}
 
   '@arizeai/openinference-semantic-conventions@1.0.0':
     resolution: {integrity: sha512-I14TjDAoDXQFT1boslWSgNU59XgcVL8VS7UwX9EA524fVgOAoxWaowKwTPLvT4y8EYQLtdg+X9t3KvBiO3+AmA==}
@@ -3845,6 +3851,12 @@ snapshots:
       web-streams-polyfill: 3.3.3
     transitivePeerDependencies:
       - encoding
+
+  '@arizeai/openinference-core@1.0.0':
+    dependencies:
+      '@arizeai/openinference-semantic-conventions': 1.0.0
+      '@opentelemetry/api': 1.9.0
+      '@opentelemetry/core': 1.30.1(@opentelemetry/api@1.9.0)
 
   '@arizeai/openinference-semantic-conventions@1.0.0': {}
 

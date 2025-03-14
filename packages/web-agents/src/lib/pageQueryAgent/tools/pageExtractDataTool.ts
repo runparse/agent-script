@@ -26,7 +26,7 @@ export class PageExtractDataTool extends PageTool<
     },
     { default: { instructions: 'string' } },
   );
-  outputSchema = Type.Any();
+  outputSchema: TSchema;
 
   private dataObjectSchema: TObjectWrapper;
 
@@ -53,7 +53,7 @@ export class PageExtractDataTool extends PageTool<
 
     this.dataObjectSchema = dataObjectSchema;
     this.visualMode = visualMode;
-    this.outputSchema.default = this.dataObjectSchema.jsonSchemaInstance;
+    this.outputSchema = dataObjectSchema.tSchema;
   }
 
   override async call(

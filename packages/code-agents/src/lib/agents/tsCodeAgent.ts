@@ -134,7 +134,7 @@ export class TsCodeAgent<TOutSchema extends TSchema>
             variableName: printName,
           });
           bufferedConsole.log(
-            `${printName} = ${JSON.stringify(result, null, 2)}`,
+            `${printName}: ${JSON.stringify(result, null, 2)}`,
           );
           return result;
         } catch (error: any) {

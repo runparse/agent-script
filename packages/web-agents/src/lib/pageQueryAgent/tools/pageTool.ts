@@ -33,14 +33,6 @@ export abstract class PageActionTool<
     const currentStep = agent.memory.steps[agent.memory.steps.length - 1];
     if (!(currentStep instanceof ActionStep)) return;
 
-    // Remove old screenshots to keep memory lean
-    for (const step of agent.memory.steps) {
-      if (!(step instanceof ActionStep)) continue;
-      if (step.stepNumber <= currentStep.stepNumber - 2) {
-        step.observationsImages = undefined;
-      }
-    }
-
     // Take screenshot
     const { data: screenshotData, metadata } = await getBase64Screenshot(
       agent.page,

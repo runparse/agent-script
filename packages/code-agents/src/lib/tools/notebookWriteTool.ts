@@ -16,33 +16,35 @@ export class NotebookWriteTool extends BaseTool<
     {
       successCount: Type.Number(),
       errorCount: Type.Number(),
+      totalSuccessCount: Type.Number(),
     },
-    { default: { successCount: 0, errorCount: 0 } }
+    { default: { successCount: 0, errorCount: 0, totalSuccessCount: 0 } },
   );
 
   entries: Array<any> = [];
 
   constructor(
     public dataObjectSchema: TObjectWrapper = new TObjectWrapper(
-      Type.Object({})
-    )
+      Type.Object({}),
+    ),
   ) {
     super();
     this.inputSchema = Type.Array(
-      this.dataObjectSchema.tSchema as TObject<any>
+      this.dataObjectSchema.tSchema as TObject<any>,
     );
     this.inputSchema.default = [this.dataObjectSchema.jsonSchemaInstance];
   }
 
   override async call(
     input: Static<typeof this.inputSchema>,
-    agent: IMultiStepAgent
+    agent: IMultiStepAgent,
   ): Promise<Static<typeof this.outputSchema>> {
     this.entries.push(...input);
 
     return {
       successCount: input.length,
       errorCount: 0,
+      totalSuccessCount: this.entries.length,
     };
   }
 }

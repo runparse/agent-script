@@ -18,7 +18,6 @@ import {
   TaskStep,
 } from '../agentMemory';
 import { toChatCompletionMessageParam, truncateContent } from '../utils';
-import { TypeBoxError } from '@sinclair/typebox';
 import { Static, TSchema } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
 import { AgentError, AgentErrorCode } from '../errors';
@@ -212,31 +211,21 @@ export abstract class MultiStepAgent<TOutputSchema extends TSchema>
       await tool.onAfterCall(input, output, this);
       return output;
     } catch (error: any) {
-      if (error instanceof TypeBoxError) {
-        throw new AgentError({
-          message: `Invalid input for tool ${toolName}: ${error.message}`,
-          code: AgentErrorCode.INVALID_INPUT,
-        });
-      }
-
-      if (tool) {
-        const errorMsg = `Error when executing tool ${toolName} with arguments ${JSON.stringify(
-          input,
-        )}: ${error.name}: ${
-          error.message
-        }\nYou should only use this tool with a correct input.\nAs a reminder, this tool's description is the following: '${
-          tool.description
-        }'.\nIt takes inputs: ${JSON.stringify(
-          tool.inputSchema,
-        )} and returns output type ${
-          tool.outputSchema?.description ?? 'unknown'
-        }`;
-        throw new AgentError({
-          message: errorMsg,
-          code: AgentErrorCode.TOOL_EXECUTION_ERROR,
-        });
-      }
-      throw error;
+      const errorMsg = `Error when executing tool ${toolName} with arguments ${JSON.stringify(
+        input,
+      )}: ${error.name}: ${
+        error.message
+      }\nYou should only use this tool with a correct input.\nAs a reminder, this tool's description is the following: '${
+        tool.description
+      }'.\nIt takes inputs: ${JSON.stringify(
+        tool.inputSchema,
+      )} and returns output type ${
+        tool.outputSchema?.description ?? 'unknown'
+      }`;
+      throw new AgentError({
+        message: errorMsg,
+        code: AgentErrorCode.TOOL_EXECUTION_ERROR,
+      });
     }
   }
 
@@ -273,7 +262,11 @@ export abstract class MultiStepAgent<TOutputSchema extends TSchema>
       new TaskStep({ task: this.task, taskImages: images }),
     );
 
-    while (finalAnswer === undefined && this.stepNumber <= this.maxSteps) {
+    while (
+      finalAnswer === undefined &&
+      this.stepNumber <= this.maxSteps &&
+      !this.errorCircuitBreaker()
+    ) {
       const stepStartTime = Date.now();
       const memoryStep = new ActionStep({
         stepNumber: this.stepNumber,
@@ -517,4 +510,28 @@ export abstract class MultiStepAgent<TOutputSchema extends TSchema>
   abstract step(
     memoryStep: AgentMemoryStep,
   ): Promise<Static<TOutputSchema> | undefined>;
+
+  errorCircuitBreaker(): boolean {
+    const actionSteps = this.memory.steps.filter(
+      (step) => step instanceof ActionStep,
+    ) as ActionStep[];
+    const lastActionStep = actionSteps[actionSteps.length - 1];
+    if (lastActionStep && lastActionStep.error) {
+      // Check if the last 3 action steps have the same error
+      if (actionSteps.length >= 3) {
+        const lastThreeSteps = actionSteps.slice(-3);
+
+        // Ensure all last three steps have errors
+        if (lastThreeSteps.every((step) => step.error)) {
+          // Compare error messages to check if they're the same
+          const errorMessage = lastActionStep.error.message;
+          return lastThreeSteps.every(
+            (step) => step.error?.message === errorMessage,
+          );
+        }
+      }
+      return false;
+    }
+    return false;
+  }
 }

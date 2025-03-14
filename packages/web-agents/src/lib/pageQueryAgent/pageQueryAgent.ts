@@ -8,8 +8,9 @@ import {
   IChatMessage,
   ITsCodeAgent,
   ITsCodeAgentProps,
+  ActionStep,
 } from '@runparse/code-agents';
-import { TSchema, TString } from '@sinclair/typebox';
+import { Static, TSchema, TString } from '@sinclair/typebox';
 import { PartialBy } from '@runparse/code-agents';
 import { PageTool } from './tools/pageTool';
 import { NotebookWriteTool } from '@runparse/code-agents';
@@ -111,5 +112,23 @@ export class PageQueryAgent
       });
     }
     return messages;
+  }
+
+  override async step(
+    memoryStep: ActionStep,
+  ): Promise<Static<TString> | undefined> {
+    // Get current memory step
+    const currentStep = this.memory.steps[this.memory.steps.length - 1];
+    if (!(currentStep instanceof ActionStep)) return;
+
+    // Remove old screenshots to keep memory lean
+    for (const step of this.memory.steps) {
+      if (!(step instanceof ActionStep)) continue;
+      if (step.stepNumber <= currentStep.stepNumber - 2) {
+        step.observationsImages = undefined;
+      }
+    }
+
+    return super.step(memoryStep);
   }
 }

@@ -15,7 +15,9 @@ export abstract class BaseTool<
   getSignature(): string {
     return `// ${this.description}\nasync function ${
       this.name
-    }(params: ${typeboxToTsString(this.inputSchema)})`;
+    }(params: ${typeboxToTsString(this.inputSchema)}): Promise\<${
+      this.outputSchema ? typeboxToTsString(this.outputSchema) : 'any'
+    }\>`;
   }
 
   abstract call(
