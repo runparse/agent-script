@@ -1,11 +1,8 @@
-import { TBoolean, TObject, TString, Type, Static } from '@sinclair/typebox';
-import { PageActionTool } from './pageTool';
-import { IPageQueryAgent } from '../pageQueryAgent';
+import { Type, Static } from '@sinclair/typebox';
+import { PageActionUdf } from './pageUdf';
+import { IParticleAgent } from '../../types';
 
-export class PageClosePopupsTool extends PageActionTool<
-  TObject<{ popupCloseButtonLabel: TString }>,
-  TBoolean
-> {
+export class PageClosePopupsUdf extends PageActionUdf {
   name = 'pageClosePopups';
   description = 'Closes any visible popups or modals on the webpage';
 
@@ -20,7 +17,7 @@ export class PageClosePopupsTool extends PageActionTool<
 
   override async call(
     input: Static<typeof this.inputSchema>,
-    agent: IPageQueryAgent,
+    agent: IParticleAgent,
   ): Promise<Static<typeof this.outputSchema>> {
     const sameDomainLinks = await agent.page
       .getByRole('link', { name: input.popupCloseButtonLabel })

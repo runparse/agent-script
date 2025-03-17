@@ -1,21 +1,11 @@
+import { Static, Type } from '@sinclair/typebox';
+import { PageActionUdf } from './pageUdf';
 import {
-  Static,
-  TBoolean,
-  TObject,
-  TOptional,
-  TString,
-  Type,
-} from '@sinclair/typebox';
-import { PageActionTool } from './pageTool';
-import {
-  IPageQueryAgent,
-  IPageQueryAgentNavigationHistoryItem,
-} from '../pageQueryAgent';
+  IParticleAgent,
+  IParticleAgentNavigationHistoryItem,
+} from '../../types';
 
-export class PageNavigateLinkTool extends PageActionTool<
-  TObject<{ linkText: TString }>,
-  TObject<{ success: TBoolean; message: TOptional<TString> }>
-> {
+export class PageNavigateLinkUdf extends PageActionUdf {
   name = 'pageNavigateLink';
   description = 'Navigates to a link on the page';
 
@@ -34,11 +24,11 @@ export class PageNavigateLinkTool extends PageActionTool<
     { default: { success: true, message: 'string' } },
   );
 
-  private historyItem: IPageQueryAgentNavigationHistoryItem | undefined;
+  private historyItem: IParticleAgentNavigationHistoryItem | undefined;
 
   override async call(
     input: Static<typeof this.inputSchema>,
-    agent: IPageQueryAgent,
+    agent: IParticleAgent,
   ): Promise<Static<typeof this.outputSchema>> {
     const links = await agent.page
       .getByRole('link')
@@ -76,7 +66,7 @@ export class PageNavigateLinkTool extends PageActionTool<
 
   override async onBeforeCall(
     input: Static<typeof this.inputSchema>,
-    agent: IPageQueryAgent,
+    agent: IParticleAgent,
   ) {
     await super.onBeforeCall(input, agent);
     this.historyItem = undefined;
@@ -85,7 +75,7 @@ export class PageNavigateLinkTool extends PageActionTool<
   override async onAfterCall(
     input: Static<typeof this.inputSchema>,
     output: Static<typeof this.outputSchema>,
-    agent: IPageQueryAgent,
+    agent: IParticleAgent,
   ) {
     await super.onAfterCall(input, output, agent);
     if (this.historyItem) {

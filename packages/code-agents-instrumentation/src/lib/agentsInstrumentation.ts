@@ -12,14 +12,12 @@ import {
 } from '@arizeai/openinference-semantic-conventions';
 
 import {
-  MultiStepAgent,
   CodeAgent,
-  TsCodeAgent,
   ChatModel,
   IChatMessage,
   ActionStep,
   IChatResponseMetadata,
-} from '@runparse/code-agents';
+} from '@runparse/agents';
 import { CompletionNonStreaming } from 'token.js/dist/chat';
 import { getLLMInputMessagesAttributes } from './utils';
 
@@ -27,15 +25,11 @@ import { OITracer, TraceConfigOptions } from '@arizeai/openinference-core';
 
 const COMPONENT = '@runparse/code-agents-instrumentation';
 
-export interface AgentsInstrumentationConfig extends InstrumentationConfig {
-  omitImageData: boolean;
-}
-
-export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumentationConfig> {
+export class AgentsInstrumentation extends InstrumentationBase<InstrumentationConfig> {
   private oiTracer: OITracer;
 
   constructor(
-    config: AgentsInstrumentationConfig = { omitImageData: true },
+    config: InstrumentationConfig = {},
     traceConfig?: TraceConfigOptions,
   ) {
     super('@runparse/code-agents-instrumentation', '1.0.0', config);
@@ -45,19 +39,15 @@ export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumenta
   protected init(): void {
     // Instrument MultiStepAgent methodSemanticAttributess
     this._diag.debug('Patching MultiStepAgent methods');
-    this.patchMultiStepAgent();
+    this.patchCodeAgent();
 
     // Instrument CodeAgent methods
     this._diag.debug('Patching CodeAgent methods');
     this.patchCodeAgent();
 
-    // Instrument TsCodeAgent methods
-    this._diag.debug('Patching TsCodeAgent methods');
-    this.patchTsCodeAgent();
-
     // Instrument ChatModel methods
     this._diag.debug('Patching ChatModel methods');
-    this.patchChatModel({ omitImageData: this._config.omitImageData });
+    this.patchChatModel();
   }
 
   private patchCodeAgent(): void {
@@ -65,10 +55,7 @@ export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumenta
       CodeAgent.prototype,
       'step',
       (original) =>
-        async function patchedStep(
-          this: CodeAgent<any>,
-          memoryStep: ActionStep,
-        ) {
+        async function patchedStep(this: CodeAgent, memoryStep: ActionStep) {
           const span = trace
             .getTracer(COMPONENT)
             .startSpan(`Step ${memoryStep.stepNumber}`, {
@@ -104,74 +91,24 @@ export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumenta
           );
         },
     );
-  }
 
-  private patchTsCodeAgent(): void {
     this._wrap(
-      TsCodeAgent.prototype,
-      'step',
-      (original) =>
-        async function patchedStep(
-          this: TsCodeAgent<any>,
-          memoryStep: ActionStep,
-        ) {
-          const span = trace
-            .getTracer(COMPONENT)
-            .startSpan(`Step ${memoryStep.stepNumber}`, {
-              attributes: {
-                [SemanticConventions.OPENINFERENCE_SPAN_KIND]:
-                  OpenInferenceSpanKind.CHAIN,
-                [SemanticConventions.INPUT_VALUE]: JSON.stringify(memoryStep),
-              },
-            });
-
-          return context.with(
-            trace.setSpan(context.active(), span),
-            async () => {
-              try {
-                const result = await original.call(this, memoryStep);
-                span.setStatus({ code: SpanStatusCode.OK });
-                span.setAttribute(
-                  SemanticConventions.OUTPUT_VALUE,
-                  memoryStep.observations || 'No observations',
-                );
-                return result;
-              } catch (error: any) {
-                span.setStatus({
-                  code: SpanStatusCode.ERROR,
-                  message: error.message,
-                });
-                span.recordException(error);
-                throw error;
-              } finally {
-                span.end();
-              }
-            },
-          );
-        },
-    );
-  }
-
-  private patchMultiStepAgent(): void {
-    this._wrap(
-      MultiStepAgent.prototype,
+      CodeAgent.prototype,
       'run',
       (original) =>
-        async function patchedRun(
-          this: MultiStepAgent<any>,
-          task: string,
-          options: any,
-        ) {
-          const span = trace.getTracer(COMPONENT).startSpan(`Agent Run`, {
-            attributes: {
-              [SemanticConventions.OPENINFERENCE_SPAN_KIND]:
-                OpenInferenceSpanKind.AGENT,
-              [SemanticConventions.INPUT_VALUE]: JSON.stringify({
-                task,
-                options,
-              }),
-            },
-          });
+        async function patchedRun(this: CodeAgent, task: string, options: any) {
+          const span = trace
+            .getTracer(COMPONENT)
+            .startSpan(`${this.name} Run`, {
+              attributes: {
+                [SemanticConventions.OPENINFERENCE_SPAN_KIND]:
+                  OpenInferenceSpanKind.AGENT,
+                [SemanticConventions.INPUT_VALUE]: JSON.stringify({
+                  task,
+                  options,
+                }),
+              },
+            });
 
           return context.with(
             trace.setSpan(context.active(), span),
@@ -198,55 +135,9 @@ export class AgentsInstrumentation extends InstrumentationBase<AgentsInstrumenta
           );
         },
     );
-
-    this._wrap(
-      MultiStepAgent.prototype,
-      'executeToolCall',
-      (original) =>
-        async function patchedExecuteToolCall(
-          this: MultiStepAgent<any>,
-          toolName: string,
-          input: any,
-        ) {
-          const span = trace.getTracer(COMPONENT).startSpan('Tool Call', {
-            attributes: {
-              [SemanticConventions.OPENINFERENCE_SPAN_KIND]:
-                OpenInferenceSpanKind.TOOL,
-              [SemanticConventions.INPUT_VALUE]: JSON.stringify({
-                toolName,
-                input,
-              }),
-            },
-          });
-
-          return context.with(
-            trace.setSpan(context.active(), span),
-            async () => {
-              try {
-                const result = await original.call(this, toolName, input);
-                span.setStatus({ code: SpanStatusCode.OK });
-                span.setAttribute(
-                  SemanticConventions.OUTPUT_VALUE,
-                  JSON.stringify(result),
-                );
-                return result;
-              } catch (error: any) {
-                span.setStatus({
-                  code: SpanStatusCode.ERROR,
-                  message: error.message,
-                });
-                span.recordException(error);
-                throw error;
-              } finally {
-                span.end();
-              }
-            },
-          );
-        },
-    );
   }
 
-  private patchChatModel({ omitImageData }: { omitImageData: boolean }): void {
+  private patchChatModel(): void {
     const instrumentation = this;
     this._wrap(
       ChatModel.prototype,

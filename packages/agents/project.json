@@ -1,0 +1,32 @@
+{
+  "name": "agents",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/agents/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/agents/dist",
+        "main": "packages/agents/src/index.ts",
+        "tsConfig": "packages/agents/tsconfig.lib.json",
+        "assets": ["packages/agents/*.md"]
+      }
+    },
+    "postBuild": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm version patch --no-git-tag-version --no-workspaces"],
+        "cwd": "packages/agents"
+      }
+    },
+    "cli": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm ts-node packages/agents/scripts/cli.ts"]
+      }
+    }
+  }
+}

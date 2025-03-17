@@ -1,31 +1,25 @@
-import { ActionStep, BaseTool } from '@runparse/code-agents';
-import { Static, TSchema } from '@sinclair/typebox';
+import { ActionStep, BaseUdf } from '@runparse/agents';
+import { Static } from '@sinclair/typebox';
 import { getBase64Screenshot } from '../../utils';
-import { IPageQueryAgent } from '../pageQueryAgent';
+import { IParticleAgent } from '../../types';
 
-export abstract class PageTool<
-  TInput extends TSchema = any,
-  TOutput extends TSchema = any,
-> extends BaseTool<TInput, TOutput> {
+export abstract class PageUdf extends BaseUdf {
   abstract override call(
-    input: Static<TInput>,
-    agent: IPageQueryAgent,
-  ): Promise<Static<TOutput>>;
+    input: Static<this['inputSchema']>,
+    agent: IParticleAgent,
+  ): Promise<Static<this['outputSchema']>>;
 }
 
-export abstract class PageActionTool<
-  TInput extends TSchema,
-  TOutput extends TSchema,
-> extends PageTool<TInput, TOutput> {
+export abstract class PageActionUdf extends PageUdf {
   override async onAfterCall(
-    input: Static<TInput>,
-    output: Static<TOutput>,
-    agent: IPageQueryAgent,
+    input: Static<this['inputSchema']>,
+    output: Static<this['outputSchema']>,
+    agent: IParticleAgent,
   ): Promise<void> {
     await this.saveScreenshotToMemory(agent);
   }
 
-  private async saveScreenshotToMemory(agent: IPageQueryAgent): Promise<void> {
+  private async saveScreenshotToMemory(agent: IParticleAgent): Promise<void> {
     // Wait for any JavaScript animations to complete
     await new Promise((resolve) => setTimeout(resolve, 1000));
 

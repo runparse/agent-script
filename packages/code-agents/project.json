@@ -1,7 +1,7 @@
 {
   "name": "code-agents",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/agents/src",
+  "sourceRoot": "packages/code-agents/src",
   "projectType": "library",
   "tags": [],
   "targets": {

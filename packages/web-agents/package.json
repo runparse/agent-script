@@ -14,12 +14,13 @@
     "htmlparser2": "10.0.0"
   },
   "peerDependencies": {
-    "@runparse/code-agents": "workspace:*",
+    "@runparse/agents": "workspace:*",
     "@runparse/code-agents-instrumentation": "workspace:*",
     "@sinclair/typebox": ">=0.34.28",
     "playwright": ">=1.50.0"
   },
   "devDependencies": {
+    "@types/json-schema": "7.0.15",
     "@types/turndown": "5.0.5"
   }
 }

@@ -1,18 +1,15 @@
-import { TObject, TString, Type, TSchema, Static } from '@sinclair/typebox';
-import { PageTool } from './pageTool';
-import { IChatModel } from '@runparse/code-agents';
-import { TObjectWrapper } from '@runparse/code-agents';
+import { Type, TSchema, Static } from '@sinclair/typebox';
+import { PageUdf } from './pageUdf';
+import { IChatModel } from '@runparse/agents';
 import TurndownService from 'turndown';
 import { CompletionNonStreaming, LLMProvider } from 'token.js/dist/chat';
-import { IPageQueryAgent } from '../pageQueryAgent';
-import { ChatModel } from '@runparse/code-agents';
+import { IParticleAgent } from '../../types';
+import { ChatModel } from '@runparse/agents';
 import { Parser } from 'htmlparser2';
 import { getBase64Screenshot } from '../../utils';
+import { TObjectWrapper } from '../../jsonSchema';
 
-export class PageExtractDataTool extends PageTool<
-  TObject<{ instructions: TString }>,
-  TSchema
-> {
+export class PageExtractDataUdf extends PageUdf {
   name = 'pageExtractData';
   description =
     'Extracts data from current webpage you are on, following user instructions.';
@@ -48,7 +45,7 @@ export class PageExtractDataTool extends PageTool<
       model ||
       new ChatModel({
         provider: 'openai',
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
       });
 
     this.dataObjectSchema = dataObjectSchema;
@@ -58,7 +55,7 @@ export class PageExtractDataTool extends PageTool<
 
   override async call(
     input: Static<typeof this.inputSchema>,
-    agent: IPageQueryAgent,
+    agent: IParticleAgent,
   ): Promise<Static<typeof this.outputSchema>> {
     const content = await agent.page.content();
 
@@ -83,7 +80,7 @@ export class PageExtractDataTool extends PageTool<
   override async onAfterCall(
     input: Static<typeof this.inputSchema>,
     output: Static<typeof this.outputSchema>,
-    agent: IPageQueryAgent,
+    agent: IParticleAgent,
   ) {
     await super.onAfterCall(input, output, agent);
     const historyItem = agent.navigationHistory

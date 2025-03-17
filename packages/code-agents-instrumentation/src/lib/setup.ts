@@ -9,10 +9,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 // import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { AgentsInstrumentation } from './agentsInstrumentation';
 
-export function setup(
-  options: { omitImageData: boolean } = { omitImageData: true },
-) {
-  console.log(options);
+export function setup() {
   // For troubleshooting, set the log level to DiagLogLevel.DEBUG
   // diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO);
 
@@ -30,10 +27,7 @@ export function setup(
 
   registerInstrumentations({
     instrumentations: [
-      new AgentsInstrumentation(
-        { omitImageData: options.omitImageData },
-        { base64ImageMaxLength: 256 * 1024 },
-      ),
+      new AgentsInstrumentation({}, { base64ImageMaxLength: 256 * 1024 }),
     ],
   });
 

@@ -1,11 +1,8 @@
-import { Static, TBoolean, TObject, TString, Type } from '@sinclair/typebox';
-import { PageActionTool } from './pageTool';
-import { IPageQueryAgent } from '../pageQueryAgent';
+import { Static, Type } from '@sinclair/typebox';
+import { PageActionUdf } from './pageUdf';
+import { IParticleAgent } from '../../types';
 
-export class PageLoadMoreDataTool extends PageActionTool<
-  TObject<{ loadMoreButtonLabel: TString }>,
-  TBoolean
-> {
+export class PageLoadMoreDataUdf extends PageActionUdf {
   name = 'pageLoadMoreData';
   description = 'Loads more data from the webpage';
 
@@ -20,7 +17,7 @@ export class PageLoadMoreDataTool extends PageActionTool<
 
   override async call(
     input: Static<typeof this.inputSchema>,
-    agent: IPageQueryAgent,
+    agent: IParticleAgent,
   ): Promise<Static<typeof this.outputSchema>> {
     const sameDomainLinks = await agent.page
       .getByRole('link', { name: input.loadMoreButtonLabel })
