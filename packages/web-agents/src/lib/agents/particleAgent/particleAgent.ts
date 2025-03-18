@@ -76,12 +76,6 @@ export class ParticleAgent extends CodeAgent {
     this.navigationHistory = props.navigationHistory || [];
   }
 
-  getDatasheetEntries() {
-    return Array.from(
-      this.udfs.find((udf) => udf instanceof DatasheetWriteUdf)!.entries,
-    );
-  }
-
   override writeMemoryToMessages(summaryMode: boolean): IChatMessage[] {
     const messages = super.writeMemoryToMessages(summaryMode);
     if (this.navigationHistory.length > 0) {
@@ -112,5 +106,11 @@ export class ParticleAgent extends CodeAgent {
     }
 
     return super.step(memoryStep);
+  }
+
+  getDatasheetEntries() {
+    return Array.from(
+      this.udfs.find((udf) => udf instanceof DatasheetWriteUdf)!.entries,
+    );
   }
 }

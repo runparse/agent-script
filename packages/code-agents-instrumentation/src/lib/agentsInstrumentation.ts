@@ -37,10 +37,6 @@ export class AgentsInstrumentation extends InstrumentationBase<InstrumentationCo
   }
 
   protected init(): void {
-    // Instrument MultiStepAgent methodSemanticAttributess
-    this._diag.debug('Patching MultiStepAgent methods');
-    this.patchCodeAgent();
-
     // Instrument CodeAgent methods
     this._diag.debug('Patching CodeAgent methods');
     this.patchCodeAgent();
@@ -115,6 +111,52 @@ export class AgentsInstrumentation extends InstrumentationBase<InstrumentationCo
             async () => {
               try {
                 const result = await original.call(this, task, options);
+                span.setStatus({ code: SpanStatusCode.OK });
+                span.setAttribute(
+                  SemanticConventions.OUTPUT_VALUE,
+                  JSON.stringify(result),
+                );
+                return result;
+              } catch (error: any) {
+                span.setStatus({
+                  code: SpanStatusCode.ERROR,
+                  message: error.message,
+                });
+                span.recordException(error);
+                throw error;
+              } finally {
+                span.end();
+              }
+            },
+          );
+        },
+    );
+
+    this._wrap(
+      CodeAgent.prototype,
+      'callUdf',
+      (original) =>
+        async function patchedCallUdf(
+          this: CodeAgent,
+          udfName: string,
+          input: any,
+        ) {
+          const span = trace.getTracer(COMPONENT).startSpan('UDF Call', {
+            attributes: {
+              [SemanticConventions.OPENINFERENCE_SPAN_KIND]:
+                OpenInferenceSpanKind.TOOL,
+              [SemanticConventions.INPUT_VALUE]: JSON.stringify({
+                udfName,
+                input,
+              }),
+            },
+          });
+
+          return context.with(
+            trace.setSpan(context.active(), span),
+            async () => {
+              try {
+                const result = await original.call(this, udfName, input);
                 span.setStatus({ code: SpanStatusCode.OK });
                 span.setAttribute(
                   SemanticConventions.OUTPUT_VALUE,
