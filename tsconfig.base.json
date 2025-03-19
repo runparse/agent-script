@@ -26,7 +26,6 @@
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "@runparse/code-agents": ["packages/code-agents/src/index.ts"],
       "@runparse/agents": ["packages/agents/src/index.ts"],
       "@runparse/code-agents-instrumentation": [
         "packages/code-agents-instrumentation/src/index.ts"
