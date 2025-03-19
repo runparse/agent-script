@@ -1,7 +1,7 @@
 import { TObject, TProperties, Type } from '@sinclair/typebox';
 import { TSchema } from '@sinclair/typebox';
 import { JSONSchema7 } from 'json-schema';
-import { JsonSchemaInstance, JsonSchemaObjectInstance } from './types';
+import { JsonSchemaInstance, JsonSchemaObjectInstance } from './lang';
 
 export function createTSchemaFromJsonSchema(schema: JSONSchema7): TSchema {
   // Handle object type
@@ -27,7 +27,7 @@ export function createTSchemaFromJsonSchema(schema: JSONSchema7): TSchema {
   if (schema.type === 'array') {
     if (schema.items) {
       return Type.Array(
-        createTSchemaFromJsonSchema(schema.items as JSONSchema7)
+        createTSchemaFromJsonSchema(schema.items as JSONSchema7),
       );
     }
     // Fallback if no items schema provided.
@@ -59,7 +59,7 @@ export function createTSchemaFromJsonSchema(schema: JSONSchema7): TSchema {
 }
 
 export function createTSchemaFromInstance(
-  jsonSchemaInstance: JsonSchemaInstance
+  jsonSchemaInstance: JsonSchemaInstance,
 ): typeof jsonSchemaInstance & TSchema {
   const typeOfJsonSchemaInstance = typeof jsonSchemaInstance;
   switch (typeOfJsonSchemaInstance) {
@@ -81,7 +81,7 @@ export function createTSchemaFromInstance(
           throw new Error(
             `Invalid json schema instance: array items must be of the same type: ${jsonSchemaInstance
               .map((item) => typeof item)
-              .join(', ')}`
+              .join(', ')}`,
           );
         }
         return Type.Array(createTSchemaFromInstance(firstItem));
@@ -92,17 +92,17 @@ export function createTSchemaFromInstance(
       return Type.Object(
         Object.keys(jsonSchemaInstance).reduce((acc, key) => {
           acc[key] = createTSchemaFromInstance(
-            (jsonSchemaInstance as JsonSchemaObjectInstance)[key]!
+            (jsonSchemaInstance as JsonSchemaObjectInstance)[key]!,
           );
           return acc;
         }, {} as TProperties),
         {
           additionalProperties: false,
-        }
+        },
       );
     default:
       throw new Error(
-        `Unsupported json schema instance field type: ${typeOfJsonSchemaInstance}`
+        `Unsupported json schema instance field type: ${typeOfJsonSchemaInstance}`,
       );
   }
 }
@@ -115,12 +115,12 @@ export function makeTObjectFieldsNullable(schema: TObject): TObject {
     }, {} as TProperties),
     {
       additionalProperties: false,
-    }
+    },
   );
 }
 
 export function generateDefaultJsonSchemaInstance(
-  schema: TSchema
+  schema: TSchema,
 ): JsonSchemaInstance {
   switch (schema.type) {
     case 'string':
@@ -137,7 +137,7 @@ export function generateDefaultJsonSchemaInstance(
       // Handle object type
       return Object.keys(schema.properties || {}).reduce((acc, key) => {
         acc[key] = generateDefaultJsonSchemaInstance(
-          (schema.properties as Record<string, TSchema>)[key]!
+          (schema.properties as Record<string, TSchema>)[key]!,
         );
         return acc;
       }, {} as Record<string, JsonSchemaInstance>);

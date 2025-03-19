@@ -83,7 +83,7 @@ ${buildExamplesSectionPrompt(codeAgentExamples)}
 Above example were using notional UDFs that might not exist for you. On top of performing computations in the Javascript code snippets that you create, you only have access to these UDFs (in additional to any built-in functions):
 \`\`\`js
 {%- for udf in udfs.values() %}
-{{ udf.getSignature() | safe}}
+{{ udf.getSignature() | safe }}\n\n
 {%- endfor %}
 \`\`\`
 
@@ -140,9 +140,11 @@ Task:
 {{task}}
 \`\`\`
 You can leverage these UDFs:
+\`\`\`js
 {%- for udf in udfs.values() %}
-{{ udf.getSignature() }}
+{{ udf.getSignature() | safe }}\n\n
 {%- endfor %}
+\`\`\`
 
 {%- if managedAgents and managedAgents.values() %}
 You can also give tasks to team members.
@@ -193,11 +195,11 @@ If you are stalled, you can make a completely new plan starting from scratch.`,
 \`\`\`
 
 You can leverage these UDFs:
+\`\`\`js
 {%- for udf in udfs.values() %}
-- {{ udf.name }}: {{ udf.description }}
-    Input JSON object schema: {{udf.inputSchema.default | dump | safe}}
-    Output JSON object schema: {{udf.outputSchema.default | dump | safe}}
+{{ udf.getSignature() | safe }}\n\n
 {%- endfor %}
+\`\`\`
 
 {%- if managedAgents and managedAgents | length %}
 You can also give tasks to team members.

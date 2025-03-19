@@ -86,12 +86,14 @@ export const particleAgentPrompt: IAgentPrompt = {
 
 In the end you have to call the \`await terminate\` UDF with the reason as the argument. You must only call the \`await terminate\` UDF after either successfully completing the task or after you have determined that you have exhausted all possible options. CRITICAL: you must call the \`await terminate\` UDF as the only action in your last step.
 
+Use the \`await think\` UDF to think about the task if you are stuck or not making progress according to the plan.
+
 ${buildExamplesSectionPrompt(particleAgentExamples)}
 
 Above example were using notional UDFs that might not exist for you. On top of performing computations in the Javascript code snippets that you create, you only have access to these UDFs (in additional to any built-in functions):
 \`\`\`js
 {%- for udf in udfs.values() %}
-{{ udf.getSignature() | safe}}
+{{ udf.getSignature() | safe }}\n\n
 {%- endfor %}
 \`\`\`
 

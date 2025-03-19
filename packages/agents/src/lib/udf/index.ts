@@ -5,3 +5,4 @@ export * from './bingSearchUdf';
 export * from './duckduckgoSearchUdf';
 export * from './datasheetWriteUdf';
 export * from './notebookWriteUdf';
+export * from './thinkUdf';

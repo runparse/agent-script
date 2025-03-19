@@ -30,7 +30,7 @@ export function toChatCompletionMessageParam(
   });
 }
 
-const MAX_LENGTH_TRUNCATE_CONTENT = 1000;
+const MAX_LENGTH_TRUNCATE_CONTENT = 10000;
 
 export function truncateContent(
   content: string,
@@ -90,7 +90,7 @@ export function typeboxToTsString(schema: TSchema): string {
   // Handle arrays recursively
   if (schema.type === 'array') {
     const arraySchema = schema as any;
-    return `${typeboxToTsString(arraySchema.items)}[]`;
+    return `Array<${typeboxToTsString(arraySchema.items)}>`;
   }
 
   const descriptionComment = schema.description
@@ -109,12 +109,16 @@ export function typeboxToTsString(schema: TSchema): string {
     case 'null':
       return `null;${descriptionComment}`;
     default:
-      if (schema[Hint] === 'Enum') {
-        return `// ${(schema as TEnum).anyOf
-          .map((o) => o.const)
-          .join(' | ')};${descriptionComment}`;
+      switch (schema[Hint]) {
+        case 'Enum':
+          return `// ${(schema as TEnum).anyOf
+            .map((o) => o.const)
+            .join(' | ')};${descriptionComment}`;
+        case 'Any':
+          return `any;${descriptionComment}`;
+        default:
+          return `unknown;${descriptionComment}`;
       }
-      return `unknown;${descriptionComment}`;
   }
 }
 
@@ -145,4 +149,22 @@ export function walkTypeboxSchema(
   ) {
     callback(schema, schemaPath);
   }
+}
+
+export function stableStringify(obj: any): string {
+  if (obj === null || typeof obj !== 'object') {
+    return JSON.stringify(obj);
+  }
+
+  if (Array.isArray(obj)) {
+    const mapped = obj.map((item) => stableStringify(item));
+    return `[${mapped.join(',')}]`;
+  }
+
+  // For plain objects, sort the keys to ensure consistent order
+  const sortedKeys = Object.keys(obj).sort();
+  const keyValuePairs = sortedKeys.map((key) => {
+    return `${JSON.stringify(key)}:${stableStringify(obj[key])}`;
+  });
+  return `{${keyValuePairs.join(',')}}`;
 }

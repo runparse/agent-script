@@ -11,20 +11,21 @@ import {
   CodeAgent,
   BingSearchUdf,
   TerminateUdf,
+  ThinkUdf,
   IUdf,
 } from '@runparse/agents';
-import { Static } from '@sinclair/typebox';
+import { Static, TSchema } from '@sinclair/typebox';
 import { PageUdf } from '../../udf/browser/pageUdf';
 import { IParticleAgentNavigationHistoryItem } from '../../types';
-import { TObjectWrapper } from '../../jsonSchema';
 import { particleAgentPrompt } from './particleAgent.prompt';
 import { PageGoBackUdf } from '../../udf/browser/pageGoBack';
+
 export interface IParticleAgentProps
   extends Omit<PartialBy<ICodeAgentProps, 'description' | 'prompts'>, 'udfs'> {
   page: Page;
   instructions: string;
   navigationHistory?: IParticleAgentNavigationHistoryItem[];
-  dataObjectSchema: TObjectWrapper;
+  dataObjectSchema: TSchema;
   udfs: {
     pageExtractDataUdf: PageExtractDataUdf;
     datasheetWriteUdf: DatasheetWriteUdf;
@@ -45,6 +46,7 @@ export class ParticleAgent extends CodeAgent {
       new PageNavigateUrlUdf(),
       new BingSearchUdf(),
       new TerminateUdf(),
+      new ThinkUdf(),
     ];
 
     const udfs = defaultUdfs.filter(
@@ -109,8 +111,8 @@ export class ParticleAgent extends CodeAgent {
   }
 
   getDatasheetEntries() {
-    return Array.from(
-      this.udfs.find((udf) => udf instanceof DatasheetWriteUdf)!.entries,
-    );
+    return this.udfs
+      .find((udf) => udf instanceof DatasheetWriteUdf)!
+      .getEntries();
   }
 }

@@ -6,8 +6,7 @@ import { CompletionNonStreaming, LLMProvider } from 'token.js/dist/chat';
 import { IParticleAgent } from '../../types';
 import { ChatModel } from '@runparse/agents';
 import { Parser } from 'htmlparser2';
-import { getBase64Screenshot } from '../../utils';
-import { TObjectWrapper } from '../../jsonSchema';
+import { getBase64Screenshot } from './utils';
 
 export class PageExtractDataUdf extends PageUdf {
   name = 'pageExtractData';
@@ -24,20 +23,19 @@ export class PageExtractDataUdf extends PageUdf {
     { default: { instructions: 'string' } },
   );
   outputSchema: TSchema;
-
-  private dataObjectSchema: TObjectWrapper;
+  private wrappedOutputSchema: TSchema;
 
   private model: IChatModel;
 
   private visualMode: boolean = false;
 
   constructor({
+    objectSchema: objectSchema,
     model,
-    dataObjectSchema,
     visualMode = false,
   }: {
+    objectSchema: TSchema;
     model?: IChatModel;
-    dataObjectSchema: TObjectWrapper;
     visualMode?: boolean;
   }) {
     super();
@@ -48,9 +46,17 @@ export class PageExtractDataUdf extends PageUdf {
         model: 'gpt-4o',
       });
 
-    this.dataObjectSchema = dataObjectSchema;
     this.visualMode = visualMode;
-    this.outputSchema = dataObjectSchema.tSchema;
+    if (objectSchema.type !== 'object') {
+      throw new Error('outputSchema must be an object');
+    }
+    this.outputSchema = Type.Array(objectSchema);
+    this.wrappedOutputSchema = Type.Object(
+      {
+        data: this.outputSchema,
+      },
+      { additionalProperties: false },
+    );
   }
 
   override async call(
@@ -69,12 +75,12 @@ export class PageExtractDataUdf extends PageUdf {
               await getBase64Screenshot(agent.page)
             ).data
           : undefined,
-        this.dataObjectSchema.tSchema,
+        this.wrappedOutputSchema,
         input.instructions,
       ),
     );
 
-    return this.dataObjectSchema.getData(JSON.parse(response.message.content));
+    return JSON.parse(response.message.content).data;
   }
 
   override async onAfterCall(

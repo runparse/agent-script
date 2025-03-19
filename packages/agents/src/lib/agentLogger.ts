@@ -16,14 +16,10 @@ export class AgentLogger implements IAgentLogger {
 
   logMarkdown({ title, content }: { title?: string; content: string }): void {
     if (title) {
-      this.console.log(`\n${title}:\n${content}\n`);
+      this.console.log(`\n${title}\n${content}\n`);
     } else {
       this.console.log(`\n${content}\n`);
     }
-  }
-
-  logCode(title: string, content: string): void {
-    this.console.log(`\n${title}:\n${content}\n`);
   }
 
   logRule(title: string): void {

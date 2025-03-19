@@ -561,7 +561,7 @@ export class CodeAgent implements ICodeAgent {
 
       this.logger.logMarkdown({
         content: modelOutput,
-        title: 'Output message of the LLM',
+        title: '--- Output message of the LLM ---',
       });
 
       try {
@@ -578,13 +578,13 @@ export class CodeAgent implements ICodeAgent {
           )}`;
           this.logger.logMarkdown({
             content: output,
-            title: 'UDF call results',
+            title: '-- UDF call results --',
           });
         } else {
           memoryStep.observations = `-- UDF call results --\nNo output from UDF calls`;
           this.logger.logMarkdown({
             content: 'No output from UDF calls',
-            title: 'Info',
+            title: '-- UDF call results --',
           });
         }
 
@@ -677,6 +677,16 @@ export class CodeAgent implements ICodeAgent {
         bufferedConsole.log(
           this.formatSandboxVariables(sandboxNewKeys, scriptUdfCalls),
         );
+      }
+
+      if (
+        scriptUdfCalls.find((result) => result.udfName === 'terminate') &&
+        scriptUdfCalls.length > 1
+      ) {
+        throw new AgentError({
+          message: 'Termate UDF must be called in its own step.',
+          code: AgentErrorCode.PREMATURE_TERMINATE,
+        });
       }
 
       return {

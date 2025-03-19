@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import { ChatModel, DatasheetWriteUdf } from '@runparse/agents';
+import { DatasheetWriteUdf } from '@runparse/agents';
 import { setup } from '@runparse/code-agents-instrumentation';
 import { Option, program } from 'commander';
 import playwright from 'playwright';
 import { ParticleAgent } from '../lib/agents/particleAgent';
-import { TObjectWrapper } from '../lib/jsonSchema';
 import { PageExtractDataUdf } from '../lib/udf/browser/pageExtractDataUdf';
+import { createTSchemaFromInstance } from '../lib/utils/schema';
 setup();
 
 program
@@ -30,9 +30,7 @@ program
 
     const browser = await playwright.chromium.launch({ headless: false });
     const page = await browser.newPage();
-    const jsonSchema = TObjectWrapper.fromJsonSchemaInstance(
-      JSON.parse(options.schema),
-    );
+    const schema = createTSchemaFromInstance(JSON.parse(options.schema));
 
     try {
       const agent = new ParticleAgent({
@@ -42,17 +40,11 @@ program
         maxSteps: 10,
         page: page,
         instructions: options.instructions,
-        dataObjectSchema: jsonSchema,
+        dataObjectSchema: schema,
         udfs: {
           otherUdfs: [],
           pageExtractDataUdf: new PageExtractDataUdf({
-            model: new ChatModel({
-              provider: 'openai',
-              model: 'gpt-4o-mini',
-            }),
-            dataObjectSchema: TObjectWrapper.fromJsonSchemaInstance([
-              jsonSchema.jsonSchemaInstance!,
-            ]),
+            objectSchema: schema,
           }),
           datasheetWriteUdf: new DatasheetWriteUdf({}),
         },

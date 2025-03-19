@@ -1,6 +1,6 @@
 import { ActionStep, BaseUdf } from '@runparse/agents';
 import { Static } from '@sinclair/typebox';
-import { getBase64Screenshot } from '../../utils';
+import { getBase64Screenshot } from './utils';
 import { IParticleAgent } from '../../types';
 
 export abstract class PageUdf extends BaseUdf {

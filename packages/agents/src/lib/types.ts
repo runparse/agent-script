@@ -15,7 +15,6 @@ export interface IAgentLogger {
 
   log(...args: any[]): void;
   logMarkdown({ title, content }: { title?: string; content: string }): void;
-  logCode(title: string, content: string): void;
   logRule(title: string, level?: LogLevel): void;
   logTask(content: string): void;
   logMessages(messages: IChatMessage[] | null): void;

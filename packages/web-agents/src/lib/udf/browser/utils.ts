@@ -1,4 +1,5 @@
-import { Page, Locator } from 'playwright';
+import { Page, Locator, PageScreenshotOptions } from 'playwright';
+import sharp from 'sharp';
 
 export enum ElementRole {
   BUTTON = 'button',
@@ -45,5 +46,45 @@ export async function getBestElementByText({
 
   return {
     match: null,
+  };
+}
+
+export enum VisualQuality {
+  MEDIUM = 'MEDIUM',
+  LOW = 'LOW',
+}
+
+export const VisualQualityParams: Record<
+  VisualQuality,
+  { width: number; height: number; quality: number }
+> = {
+  [VisualQuality.MEDIUM]: {
+    width: 1024,
+    height: 1024,
+    quality: 90,
+  },
+  [VisualQuality.LOW]: {
+    width: 512,
+    height: 512,
+    quality: 70,
+  },
+};
+
+export async function getBase64Screenshot(
+  page: Page,
+  options: { visualQuality: VisualQuality } & PageScreenshotOptions = {
+    visualQuality: VisualQuality.MEDIUM,
+  },
+): Promise<{ data: string; metadata: { width: number; height: number } }> {
+  const { width, height, quality } = VisualQualityParams[options.visualQuality];
+  const screenshot = sharp(await page.screenshot({ ...options }))
+    .resize(width, height, { fit: 'contain' })
+    .jpeg({ quality });
+
+  return {
+    data: `data:image/jpeg;base64,${(await screenshot.toBuffer()).toString(
+      'base64',
+    )}`,
+    metadata: { width, height },
   };
 }
