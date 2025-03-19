@@ -1,6 +1,6 @@
 import { ChatCompletionMessageParam } from 'token.js';
 import { IChatMessage } from './types';
-import { TObject, TSchema, Hint, TEnum } from '@sinclair/typebox';
+import { TObject, TSchema, Hint, TEnum, TArray } from '@sinclair/typebox';
 
 export function toChatCompletionMessageParam(
   messages: IChatMessage[],
@@ -30,7 +30,7 @@ export function toChatCompletionMessageParam(
   });
 }
 
-const MAX_LENGTH_TRUNCATE_CONTENT = 10000;
+const MAX_LENGTH_TRUNCATE_CONTENT = 1000;
 
 export function truncateContent(
   content: string,
@@ -115,5 +115,34 @@ export function typeboxToTsString(schema: TSchema): string {
           .join(' | ')};${descriptionComment}`;
       }
       return `unknown;${descriptionComment}`;
+  }
+}
+
+export function walkTypeboxSchema(
+  schema: TSchema,
+  callback: (schema: TSchema, schemaPath: string) => void,
+  schemaPath: string = '',
+) {
+  // Process schema based on its type
+  if (schema.type === 'object') {
+    const objSchema = schema as TObject;
+    if (objSchema.properties) {
+      Object.entries(objSchema.properties).forEach(([key, value]) =>
+        walkTypeboxSchema(value, callback, `${schemaPath}.${key}`),
+      );
+    }
+  } else if (schema.type === 'array') {
+    const arraySchema = schema as TArray;
+    if (arraySchema.items) {
+      walkTypeboxSchema(arraySchema.items, callback, schemaPath);
+    }
+  } else if (
+    schema.type === 'string' ||
+    schema.type === 'number' ||
+    schema.type === 'integer' ||
+    schema.type === 'boolean' ||
+    schema.type === 'null'
+  ) {
+    callback(schema, schemaPath);
   }
 }

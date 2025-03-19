@@ -11,7 +11,9 @@ export class PageNavigateUrlUdf extends PageActionUdf {
 
   inputSchema = Type.Object(
     {
-      url: Type.String(),
+      url: Type.String({
+        description: 'The URL to navigate to',
+      }),
     },
     { default: { url: 'string' } },
   );

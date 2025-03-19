@@ -23,7 +23,11 @@ import {
   IUdf,
   LogLevel,
 } from './types';
-import { toChatCompletionMessageParam, truncateContent } from './utils';
+import {
+  toChatCompletionMessageParam,
+  truncateContent,
+  walkTypeboxSchema,
+} from './utils';
 
 export interface ICodeAgentProps {
   task: string;
@@ -108,6 +112,27 @@ export class CodeAgent implements ICodeAgent {
     this.shouldRunPlanning = props.shouldRunPlanning || false;
 
     this.stepNumber = 0;
+
+    this.validate();
+  }
+
+  validate() {
+    const warnings: string[] = [];
+    for (const udf of this.udfs) {
+      walkTypeboxSchema(udf.inputSchema, (schema, schemaPath) => {
+        if (
+          ['string', 'number', 'boolean', 'null'].includes(schema.type) &&
+          !schema.description
+        ) {
+          warnings.push(
+            `UDF ${udf.name} has an input schema ${schemaPath} that is a primitive type but has no description.`,
+          );
+        }
+      });
+    }
+    if (warnings.length > 0) {
+      console.warn(warnings.join('\n'));
+    }
   }
 
   writeMemoryToMessages(summaryMode = false): IChatMessage[] {
@@ -699,14 +724,16 @@ export class CodeAgent implements ICodeAgent {
   }
 
   parseCodeOutput(content: string): string {
+    const sanitizedContent = content.replace(/^\s*(let|const)\s+/gm, '');
+
     const pattern = /```(?:js|javascript|ts|typescript)?\s*\n?([\s\S]*?)\n?```/;
-    const match = content.match(pattern);
+    const match = sanitizedContent.match(pattern);
     if (!match || match.length < 2) {
-      return content;
+      return sanitizedContent;
       //       throw new AgentError({
       //         message: `Your code snippet is invalid, because the regex pattern ${pattern} was not found in it.
       // Here is your code snippet:
-      // ${content}
+      // ${sanitizedContent}
       // Make sure to include code with the correct pattern, for instance:
       // Thoughts: Your thoughts
       // Code:
