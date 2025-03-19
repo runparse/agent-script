@@ -257,7 +257,7 @@ export class AgentMemory implements IAgentMemory {
           content: step.systemPrompt,
         });
       } else if (step instanceof TaskStep) {
-        logger.logTask(step.task, '', 2);
+        logger.logTask(step.task);
       } else if (step instanceof ActionStep) {
         logger.logRule(`Step ${step.stepNumber}`);
         if (detailed) {

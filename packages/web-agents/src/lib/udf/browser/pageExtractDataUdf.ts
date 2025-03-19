@@ -141,26 +141,35 @@ function getDataExtractionPrompt(
 }
 
 function getBodyMarkdown(html: string): string {
-  let extractedText = '';
+  let transformedHtml = '';
   let skipContent = false;
 
   const parser = new Parser(
     {
-      onopentag(tagName) {
+      onopentag(tagName, attrs) {
         // Ignore contents of these tags
         if (['script', 'style', 'noscript'].includes(tagName)) {
           skipContent = true;
+        } else {
+          const attrsString = Object.entries(attrs)
+            .map(([key, value]) => `${key}="${value}"`)
+            .join(' ');
+          transformedHtml += `<${tagName}${
+            attrsString ? ' ' + attrsString : ''
+          }>`;
         }
       },
       ontext(text) {
         if (!skipContent) {
           // Clean up the text: trim and add a space
-          extractedText += text.trim() + ' ';
+          transformedHtml += text.trim() + ' ';
         }
       },
       onclosetag(tagName) {
         if (['script', 'style', 'noscript'].includes(tagName)) {
           skipContent = false;
+        } else {
+          transformedHtml += `</${tagName}>`;
         }
       },
     },
@@ -171,5 +180,5 @@ function getBodyMarkdown(html: string): string {
   parser.write(html);
   parser.end();
 
-  return new TurndownService().turndown(extractedText);
+  return new TurndownService().turndown(transformedHtml);
 }

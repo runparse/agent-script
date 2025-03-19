@@ -1,7 +1,6 @@
 import { Page } from 'playwright';
 import { PageExtractDataUdf } from '../../udf/browser/pageExtractDataUdf';
-import { PageLoadMoreDataUdf } from '../../udf/browser/pageLoadMoreDataUdf';
-import { PageNavigateLinkUdf } from '../../udf/browser/pageNavigateLinkUdf';
+import { PageClickUdf } from '../../udf/browser/pageClickUdf';
 import { PageNavigateUrlUdf } from '../../udf/browser/pageNavigateUrlUdf';
 import {
   IChatMessage,
@@ -19,6 +18,7 @@ import { PageUdf } from '../../udf/browser/pageUdf';
 import { IParticleAgentNavigationHistoryItem } from '../../types';
 import { TObjectWrapper } from '../../jsonSchema';
 import { particleAgentPrompt } from './particleAgent.prompt';
+import { PageGoBackUdf } from '../../udf/browser/pageGoBack';
 export interface IParticleAgentProps
   extends Omit<PartialBy<ICodeAgentProps, 'description' | 'prompts'>, 'udfs'> {
   page: Page;
@@ -40,9 +40,9 @@ export class ParticleAgent extends CodeAgent {
 
   constructor(props: IParticleAgentProps) {
     const defaultUdfs: IUdf[] = [
-      new PageNavigateLinkUdf(),
+      new PageClickUdf(),
+      new PageGoBackUdf(),
       new PageNavigateUrlUdf(),
-      new PageLoadMoreDataUdf(),
       new BingSearchUdf(),
       new TerminateUdf(),
     ];

@@ -14,7 +14,6 @@ import { BufferedConsole } from './bufferedConsole';
 import { ChatModel } from './chatModel';
 import { AgentError, AgentErrorCode } from './errors';
 import {
-  AgentMemoryStep,
   IAgent,
   IAgentLogger,
   IAgentPrompt,
@@ -35,12 +34,13 @@ export interface ICodeAgentProps {
   sandboxContext?: vm.Context;
   prompts: IAgentPrompt;
   maxSteps: number;
-  maxMemoryTokenCount: number;
+  maxMemoryTokenCount?: number;
   model?: IChatModel;
   memory?: AgentMemory;
   managedAgents?: IAgent[];
   outputSchema?: TSchema;
   planningInterval?: number;
+  shouldRunPlanning?: boolean;
   logger?: IAgentLogger;
 }
 
@@ -62,8 +62,7 @@ export class CodeAgent implements ICodeAgent {
   planningInterval?: number;
   logger: IAgentLogger;
 
-  beforeStep?: (lastStep?: AgentMemoryStep) => Promise<void>;
-  afterStep?: (step: AgentMemoryStep) => Promise<void>;
+  private shouldRunPlanning: boolean;
 
   constructor(props: ICodeAgentProps) {
     this.task = props.task;
@@ -85,7 +84,7 @@ export class CodeAgent implements ICodeAgent {
     this.sandboxContext = props.sandboxContext || vm.createContext();
     this.prompts = props.prompts;
     this.maxSteps = props.maxSteps;
-    this.maxMemoryTokenCount = props.maxMemoryTokenCount || 100000;
+    this.maxMemoryTokenCount = props.maxMemoryTokenCount || 128 * 1000;
     this.model =
       props.model ||
       new ChatModel({
@@ -106,6 +105,7 @@ export class CodeAgent implements ICodeAgent {
     this.managedAgents = props.managedAgents || [];
     this.planningInterval = props.planningInterval;
     this.logger = props.logger || new AgentLogger();
+    this.shouldRunPlanning = props.shouldRunPlanning || false;
 
     this.stepNumber = 0;
   }
@@ -254,12 +254,7 @@ export class CodeAgent implements ICodeAgent {
         description: this.description,
       }),
     });
-    this.logger.logTask(
-      this.task.trim(),
-      `${this.model.constructor.name} - ${(this.model as any).modelId || ''}`,
-      LogLevel.INFO,
-      this.name,
-    );
+    this.logger.logTask(this.task.trim());
 
     this.memory.steps.push(
       new TaskStep({ task: this.task, taskImages: images }),
@@ -270,6 +265,11 @@ export class CodeAgent implements ICodeAgent {
       this.stepNumber <= this.maxSteps &&
       !this.errorCircuitBreaker()
     ) {
+      if (this.shouldRunPlanning) {
+        await this.planningStep();
+        continue;
+      }
+
       const stepStartTime = Date.now();
       const memoryStep = new ActionStep({
         stepNumber: this.stepNumber,
@@ -279,24 +279,16 @@ export class CodeAgent implements ICodeAgent {
       this.memory.steps.push(memoryStep);
 
       try {
-        if (
-          this.planningInterval &&
-          this.stepNumber % this.planningInterval == 1
-        ) {
-          this.planningStep();
-        }
         this.logger.logRule(`Step ${this.stepNumber}`, LogLevel.INFO);
         // Run one step
         if (this.beforeStep) {
-          await this.beforeStep(
-            this.memory.steps[this.memory.steps.length - 1],
-          );
+          await this.beforeStep();
         }
 
         finalAnswer = await this.step(memoryStep);
 
         if (this.afterStep) {
-          await this.afterStep(memoryStep);
+          await this.afterStep();
         }
       } catch (error: any) {
         if (error instanceof AgentError) {
@@ -461,6 +453,8 @@ export class CodeAgent implements ICodeAgent {
       this.logger.logRule('Updated plan', LogLevel.INFO);
       this.logger.log(finalPlanRedaction);
     }
+
+    this.shouldRunPlanning = false;
   }
 
   /**
@@ -546,10 +540,12 @@ export class CodeAgent implements ICodeAgent {
       });
 
       try {
+        const scriptCode = this.parseCodeOutput(modelOutput);
         const { result, output, isFinalAnswer } = await this.executeScript(
-          this.parseCodeOutput(modelOutput),
+          scriptCode,
         );
         memoryStep.actionOutput = result;
+        memoryStep.modelOutput = scriptCode;
 
         if (output) {
           memoryStep.observations = `-- UDF call results --\n${truncateContent(
@@ -584,6 +580,24 @@ export class CodeAgent implements ICodeAgent {
         code: AgentErrorCode.MODEL_OUTPUT_ERROR,
       });
     }
+  }
+
+  updateShouldRunPlanning(override?: boolean) {
+    if (override) {
+      this.shouldRunPlanning = override;
+      return;
+    }
+    if (this.planningInterval && this.stepNumber % this.planningInterval == 1) {
+      this.shouldRunPlanning = true;
+    }
+  }
+
+  async beforeStep(): Promise<void> {
+    return;
+  }
+
+  async afterStep(): Promise<void> {
+    this.updateShouldRunPlanning();
   }
 
   async executeScript(
@@ -688,18 +702,19 @@ export class CodeAgent implements ICodeAgent {
     const pattern = /```(?:js|javascript|ts|typescript)?\s*\n?([\s\S]*?)\n?```/;
     const match = content.match(pattern);
     if (!match || match.length < 2) {
-      throw new AgentError({
-        message: `Your code snippet is invalid, because the regex pattern ${pattern} was not found in it. 
-Here is your code snippet:
-${content}
-Make sure to include code with the correct pattern, for instance:
-Thoughts: Your thoughts
-Code:
-\`\`\`js
-// Your javascript code here
-\`\`\`<end_code>`,
-        code: AgentErrorCode.INVALID_CODE_PATTERN,
-      });
+      return content;
+      //       throw new AgentError({
+      //         message: `Your code snippet is invalid, because the regex pattern ${pattern} was not found in it.
+      // Here is your code snippet:
+      // ${content}
+      // Make sure to include code with the correct pattern, for instance:
+      // Thoughts: Your thoughts
+      // Code:
+      // \`\`\`js
+      // // Your javascript code here
+      // \`\`\`<end_code>`,
+      //         code: AgentErrorCode.INVALID_CODE_PATTERN,
+      //       });
     }
     const code = match[1]!;
     return code;

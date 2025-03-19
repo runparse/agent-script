@@ -37,8 +37,8 @@ program
     try {
       const agent = new ParticleAgent({
         task: options.task,
-        name: 'test-particle-agent',
-        description: 'test',
+        name: 'Test Particle Agent',
+        description: '',
         maxSteps: 10,
         page: page,
         instructions: options.instructions,
@@ -56,8 +56,11 @@ program
           }),
           datasheetWriteUdf: new DatasheetWriteUdf({}),
         },
-        maxMemoryTokenCount: 100000,
+        shouldRunPlanning: true,
       });
+      // setTimeout(() => {
+      //   agent.updateShouldRunPlanning(true);
+      // }, 1000);
 
       const result = await agent.run(options.task, {});
 

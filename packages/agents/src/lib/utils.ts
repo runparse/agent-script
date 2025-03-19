@@ -1,6 +1,6 @@
 import { ChatCompletionMessageParam } from 'token.js';
 import { IChatMessage } from './types';
-import { TObject, TSchema } from '@sinclair/typebox';
+import { TObject, TSchema, Hint, TEnum } from '@sinclair/typebox';
 
 export function toChatCompletionMessageParam(
   messages: IChatMessage[],
@@ -109,6 +109,11 @@ export function typeboxToTsString(schema: TSchema): string {
     case 'null':
       return `null;${descriptionComment}`;
     default:
+      if (schema[Hint] === 'Enum') {
+        return `// ${(schema as TEnum).anyOf
+          .map((o) => o.const)
+          .join(' | ')};${descriptionComment}`;
+      }
       return `unknown;${descriptionComment}`;
   }
 }

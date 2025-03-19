@@ -83,28 +83,6 @@ importers:
         specifier: 3.2.6
         version: 3.2.6
 
-  packages/code-agents:
-    dependencies:
-      '@sinclair/typebox':
-        specifier: '>=0.34.28'
-        version: 0.34.28
-      axios:
-        specifier: 1.8.2
-        version: 1.8.2
-      duck-duck-scrape:
-        specifier: 2.2.7
-        version: 2.2.7
-      nunjucks:
-        specifier: 3.2.4
-        version: 3.2.4
-    devDependencies:
-      '@types/json-schema':
-        specifier: 7.0.15
-        version: 7.0.15
-      '@types/nunjucks':
-        specifier: 3.2.6
-        version: 3.2.6
-
   packages/code-agents-instrumentation:
     dependencies:
       '@arizeai/openinference-core':

@@ -17,12 +17,7 @@ export interface IAgentLogger {
   logMarkdown({ title, content }: { title?: string; content: string }): void;
   logCode(title: string, content: string): void;
   logRule(title: string, level?: LogLevel): void;
-  logTask(
-    content: string,
-    subtitle: string,
-    level?: number,
-    title?: string,
-  ): void;
+  logTask(content: string): void;
   logMessages(messages: IChatMessage[] | null): void;
 }
 
@@ -174,14 +169,15 @@ export interface ICodeAgent extends IAgent {
   managedAgents: IAgent[];
   stepNumber: number;
   maxSteps: number;
-  beforeStep?: (lastStep?: AgentMemoryStep) => Promise<void>;
-  afterStep?: (step: AgentMemoryStep) => Promise<void>;
+  beforeStep(): Promise<void>;
+  afterStep(): Promise<void>;
   run: (
     task: string,
     { images, additionalData }: { images?: string[]; additionalData?: any },
   ) => Promise<Static<this['outputSchema']>>;
   model: IChatModel;
   planningInterval?: number;
+  updateShouldRunPlanning(override?: boolean): void;
   maxMemoryTokenCount: number;
   logger: IAgentLogger;
 }

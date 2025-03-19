@@ -30,8 +30,8 @@ export class AgentLogger implements IAgentLogger {
     this.console.log(`\n${'-'.repeat(20)}\n${title}\n${'-'.repeat(20)}\n`);
   }
 
-  logTask(content: string, subtitle: string, level = 2, title?: string): void {
-    this.console.log(`\nNew task: ${content}\n${subtitle}\n`);
+  logTask(content: string): void {
+    this.console.log(`\nNew task: ${content}\n`);
   }
 
   logMessages(messages: IChatMessage[] | null): void {

@@ -10,7 +10,11 @@ export const codeAgentRolePromptPart = removeLeadingIndentation(`
 
 export const codeAgentRulesPromptPart = removeLeadingIndentation(`
   Here are the rules you should always follow to solve your task:
-  1. CRITICAL: Your output must be valid javascript code that is enclosed in a code block starting with \`\`\`js and ending with \`\`\`<end_code>. Start with a // Thought: comment to explain your reasoning towards solving the task and the UDFs that you want to use, then write the code.
+  1. CRITICAL: You must only response in valid Javascript code. No other text is allowed. The code must be enclosed in a code block starting with \`\`\`js and ending with \`\`\`<end_code>. Start with a // Thought: comment to explain your reasoning towards solving the task and the UDFs that you want to use, then write the code. Example of a valid output:
+  \`\`\`js
+  // Thought: ...
+  // udf calls ...
+  \`\`\`<end_code>
   2. Use only variables that you have defined!
   3. Make sure to use the right arguments for the UDFs as defined in the signature. CRITICAL: You must call an async UDF with an await.
   4. Take care to not chain too many sequential UDF calls in the same code block, especially when the output format is unpredictable. For instance, a call to search has an unpredictable return format, so do not have another UDF call that depends on its output in the same block.

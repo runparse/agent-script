@@ -90,6 +90,45 @@ export class AgentsInstrumentation extends InstrumentationBase<InstrumentationCo
 
     this._wrap(
       CodeAgent.prototype,
+      'planningStep',
+      (original) =>
+        async function patchedPlanningStep(this: CodeAgent) {
+          const self = this;
+          const span = trace.getTracer(COMPONENT).startSpan(`Planning Step`, {
+            attributes: {
+              [SemanticConventions.OPENINFERENCE_SPAN_KIND]:
+                OpenInferenceSpanKind.CHAIN,
+            },
+          });
+
+          return context.with(
+            trace.setSpan(context.active(), span),
+            async () => {
+              try {
+                const result = await original.call(this);
+                span.setStatus({ code: SpanStatusCode.OK });
+                span.setAttribute(
+                  SemanticConventions.OUTPUT_VALUE,
+                  JSON.stringify(self.memory.steps[self.stepNumber - 1]),
+                );
+                return result;
+              } catch (error: any) {
+                span.setStatus({
+                  code: SpanStatusCode.ERROR,
+                  message: error.message,
+                });
+                span.recordException(error);
+                throw error;
+              } finally {
+                span.end();
+              }
+            },
+          );
+        },
+    );
+
+    this._wrap(
+      CodeAgent.prototype,
       'run',
       (original) =>
         async function patchedRun(this: CodeAgent, task: string, options: any) {
