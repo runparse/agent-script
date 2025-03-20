@@ -4,8 +4,9 @@ import {
   buildExamplesSectionPrompt,
   ICodeAgentRunExample,
   removeLeadingIndentation,
-  codeAgentRulesPromptPart,
   codeAgentPrompt,
+  codeAgentRules,
+  buildCodeAgentRulesPrompt,
 } from '@runparse/agents';
 
 export const particleAgentExamples: ICodeAgentRunExample[] = [
@@ -21,8 +22,13 @@ export const particleAgentExamples: ICodeAgentRunExample[] = [
       },
       {
         thought: 'I will now generate an image showcasing the oldest person.',
-        code: 'image = await imageGenerator("A portrait of John Doe, a 55-year-old man living in Canada.")\nawait terminate({reason: "I have generated the image"})',
+        code: 'image = await imageGenerator("A portrait of John Doe, a 55-year-old man living in Canada.")',
         result: 'image: "https://example.com/image.png"',
+      },
+      {
+        thought: 'I will now terminate the task.',
+        code: 'await terminate({reason: "I have generated the image"})',
+        result: 'No output from UDF calls',
       },
     ],
   },
@@ -72,19 +78,24 @@ export const particleAgentExamples: ICodeAgentRunExample[] = [
       },
       {
         thought:
-          'I have visited the second webpage from the results. The task is done, I can terminate.',
+          'I have visited the second webpage from the results and got the data. The task is done, I can terminate.',
         code: 'await terminate({reason: "I have found the best selling books in 2024"})',
-        result: '',
+        result: 'No output from UDF calls',
       },
     ],
   },
+];
+
+export const particleAgentRules = [
+  ...codeAgentRules,
+  'CRITICAL: `await terminate` UDF must be the only UDF call in your last step.',
 ];
 
 export const particleAgentPrompt: IAgentPrompt = {
   ...codeAgentPrompt,
   systemPrompt: `${codeAgentRolePromptPart}
 
-In the end you have to call the \`await terminate\` UDF with the reason as the argument. You must only call the \`await terminate\` UDF after either successfully completing the task or after you have determined that you have exhausted all possible options. CRITICAL: you must call the \`await terminate\` UDF as the only action in your last step.
+In the end you have to call the \`await terminate\` UDF with the reason as the argument. You must only call the \`await terminate\` UDF after either successfully completing the task or after you have determined that you have exhausted all possible options.
 
 Use the \`await think\` UDF to think about the task if you are stuck or not making progress according to the plan.
 
@@ -93,11 +104,11 @@ ${buildExamplesSectionPrompt(particleAgentExamples)}
 Above example were using notional UDFs that might not exist for you. On top of performing computations in the Javascript code snippets that you create, you only have access to these UDFs (in additional to any built-in functions):
 \`\`\`js
 {%- for udf in udfs.values() %}
-{{ udf.getSignature() | safe }}\n\n
+{{ udf.getSignature() | safe }}{{ '\\n' }}
 {%- endfor %}
 \`\`\`
 
-{%- if managedAgents and managedAgents.values() %}
+{%- if managedAgents and managedAgents | length %}
 You can also give tasks to team members.
 Calling a team member works the same as for calling a UDF: simply, the only argument you can give in the call is 'task', a long string explaining your task.
 Given that this team member is a real human, you should be very verbose in your task.
@@ -108,7 +119,7 @@ Here is a list of the team members that you can call:
 {%- else %}
 {%- endif %}
 
-${codeAgentRulesPromptPart}
+${buildCodeAgentRulesPrompt(particleAgentRules)}
 
 {{ description | safe }}
 

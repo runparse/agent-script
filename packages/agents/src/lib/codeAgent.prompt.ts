@@ -1,9 +1,7 @@
 import { IAgentPrompt } from './types';
+import { codeAgentRolePromptPart } from './prompts/parts';
 import {
-  codeAgentRolePromptPart,
-  codeAgentRulesPromptPart,
-} from './prompts/parts';
-import {
+  buildCodeAgentRulesPrompt,
   buildExamplesSectionPrompt,
   ICodeAgentRunExample,
 } from './prompts/builder';
@@ -83,11 +81,11 @@ ${buildExamplesSectionPrompt(codeAgentExamples)}
 Above example were using notional UDFs that might not exist for you. On top of performing computations in the Javascript code snippets that you create, you only have access to these UDFs (in additional to any built-in functions):
 \`\`\`js
 {%- for udf in udfs.values() %}
-{{ udf.getSignature() | safe }}\n\n
+{{ udf.getSignature() | safe }}{{ '\\n' }}
 {%- endfor %}
 \`\`\`
 
-{%- if managedAgents and managedAgents.values() %}
+{%- if managedAgents and managedAgents | length %}
 You can also give tasks to team members.
 Calling a team member works the same as for calling a UDF: simply, the only argument you can give in the call is 'task', a long string explaining your task.
 Given that this team member is a real human, you should be very verbose in your task.
@@ -98,7 +96,7 @@ Here is a list of the team members that you can call:
 {%- else %}
 {%- endif %}
 
-${codeAgentRulesPromptPart}
+${buildCodeAgentRulesPrompt()}
 
 {{ description | safe }}
 
@@ -142,11 +140,11 @@ Task:
 You can leverage these UDFs:
 \`\`\`js
 {%- for udf in udfs.values() %}
-{{ udf.getSignature() | safe }}\n\n
+{{ udf.getSignature() | safe }}{{ '\\n' }}
 {%- endfor %}
 \`\`\`
 
-{%- if managedAgents and managedAgents.values() %}
+{%- if managedAgents and managedAgents | length %}
 You can also give tasks to team members.
 Calling a team member works the same as for calling a UDF: simply, the only argument you can give in the call is 'request', a long string explaining your request.
 Given that this team member is a real human, you should be very verbose in your request.
@@ -197,7 +195,7 @@ If you are stalled, you can make a completely new plan starting from scratch.`,
 You can leverage these UDFs:
 \`\`\`js
 {%- for udf in udfs.values() %}
-{{ udf.getSignature() | safe }}\n\n
+{{ udf.getSignature() | safe }}{{ '\\n' }}
 {%- endfor %}
 \`\`\`
 

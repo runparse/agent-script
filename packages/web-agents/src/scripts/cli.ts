@@ -1,10 +1,8 @@
 #!/usr/bin/env node
-import { DatasheetWriteUdf } from '@runparse/agents';
 import { setup } from '@runparse/code-agents-instrumentation';
 import { Option, program } from 'commander';
 import playwright from 'playwright';
 import { ParticleAgent } from '../lib/agents/particleAgent';
-import { PageExtractDataUdf } from '../lib/udf/browser/pageExtractDataUdf';
 import { createTSchemaFromInstance } from '../lib/utils/schema';
 setup();
 
@@ -41,13 +39,6 @@ program
         page: page,
         instructions: options.instructions,
         dataObjectSchema: schema,
-        udfs: {
-          otherUdfs: [],
-          pageExtractDataUdf: new PageExtractDataUdf({
-            objectSchema: schema,
-          }),
-          datasheetWriteUdf: new DatasheetWriteUdf({}),
-        },
         shouldRunPlanning: true,
       });
       // setTimeout(() => {

@@ -1,3 +1,5 @@
+import { codeAgentRules } from './parts';
+
 export interface ICodeAgentRunExample {
   task: string;
   steps: {
@@ -44,4 +46,9 @@ ${buildExamplePrompt(example)}`,
   )
   .join('\n\n')}
 `;
+}
+
+export function buildCodeAgentRulesPrompt(rules: string[] = codeAgentRules) {
+  return `Here are the rules you should always follow to solve your task:
+${rules.map((rule, index) => `${index + 1}. ${rule}\n`).join('')}`;
 }

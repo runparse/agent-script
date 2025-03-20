@@ -8,7 +8,9 @@ export class TerminateUdf extends BaseUdf {
 
   inputSchema = Type.Object(
     {
-      reason: Type.String(),
+      reason: Type.String({
+        description: 'The reason for terminating the task.',
+      }),
     },
     { default: { reason: 'The task is complete.' } },
   );

@@ -15,10 +15,10 @@ import {
   IUdf,
 } from '@runparse/agents';
 import { Static, TSchema } from '@sinclair/typebox';
-import { PageUdf } from '../../udf/browser/pageUdf';
 import { IParticleAgentNavigationHistoryItem } from '../../types';
 import { particleAgentPrompt } from './particleAgent.prompt';
 import { PageGoBackUdf } from '../../udf/browser/pageGoBack';
+import { generateDefaultJsonSchemaInstance } from '@runparse/web-agents';
 
 export interface IParticleAgentProps
   extends Omit<PartialBy<ICodeAgentProps, 'description' | 'prompts'>, 'udfs'> {
@@ -26,11 +26,7 @@ export interface IParticleAgentProps
   instructions: string;
   navigationHistory?: IParticleAgentNavigationHistoryItem[];
   dataObjectSchema: TSchema;
-  udfs: {
-    pageExtractDataUdf: PageExtractDataUdf;
-    datasheetWriteUdf: DatasheetWriteUdf;
-    otherUdfs?: PageUdf[];
-  };
+  udfs?: IUdf[];
 }
 
 export class ParticleAgent extends CodeAgent {
@@ -40,24 +36,29 @@ export class ParticleAgent extends CodeAgent {
   override udfs: IUdf[];
 
   constructor(props: IParticleAgentProps) {
-    const defaultUdfs: IUdf[] = [
+    let udfs: IUdf[] = [
       new PageClickUdf(),
-      new PageGoBackUdf(),
       new PageNavigateUrlUdf(),
+      new PageGoBackUdf(),
+      new PageExtractDataUdf({
+        objectSchema: props.dataObjectSchema,
+      }),
+      new DatasheetWriteUdf({}),
       new BingSearchUdf(),
       new TerminateUdf(),
       new ThinkUdf(),
     ];
 
-    const udfs = defaultUdfs.filter(
-      (defaultUdf) =>
-        !props.udfs.otherUdfs?.some(
-          (overrideUdf) => overrideUdf.name === defaultUdf.name,
-        ),
-    );
-    udfs.push(...(props.udfs.otherUdfs || []));
-    udfs.push(props.udfs.pageExtractDataUdf);
-    udfs.push(props.udfs.datasheetWriteUdf);
+    if (props.udfs) {
+      udfs = udfs
+        .filter(
+          (defaultUdf) =>
+            !props.udfs!.some(
+              (overrideUdf) => overrideUdf.name === defaultUdf.name,
+            ),
+        )
+        .concat(props.udfs);
+    }
 
     super({
       ...props,
@@ -66,7 +67,7 @@ export class ParticleAgent extends CodeAgent {
       description:
         props.description ||
         `You object is to collect data as JSON objects with the following structure:\n\n${JSON.stringify(
-          props.dataObjectSchema.jsonSchemaInstance,
+          generateDefaultJsonSchemaInstance(props.dataObjectSchema),
         )} using the 'notebookWrite' function whenever you find relevant data after extracting data from a webpage or searching the web. Visit every link from the results after doing a web search. You can close popups, load more data, and extract data following user instructions on a webpage. Navigate away from the page if you see a captcha. Always use the 'pageExtractData' tool before using the 'pageLoadMoreData' tool. You must call the 'notebookWrite' at least once before the using the 'finalAnswer' tool to save any relevant data.`,
     });
 
