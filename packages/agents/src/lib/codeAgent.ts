@@ -675,7 +675,7 @@ export class CodeAgent implements ICodeAgent {
       ).filter((key) => !sandboxExistingKeys.has(key));
       if (sandboxNewKeys.length > 0) {
         bufferedConsole.log(
-          this.formatSandboxVariables(sandboxNewKeys, scriptUdfCalls),
+          this.formatUdfCalls(sandboxNewKeys, scriptUdfCalls),
         );
       }
 
@@ -710,25 +710,21 @@ export class CodeAgent implements ICodeAgent {
     }
   }
 
-  formatSandboxVariables(
+  formatUdfCalls(
     variables: string[],
     scriptUdfCalls: {
       returnValue: unknown;
       udfName: string;
     }[],
   ): string {
-    return variables
-      .map((variable) => {
-        const udfName = scriptUdfCalls.find(
-          (result) => result.returnValue === this.sandboxContext[variable],
-        )?.udfName;
-        return `${
-          udfName ? `// UDF: ${udfName}\n` : ''
-        }${variable}: ${JSON.stringify(
-          this.sandboxContext[variable],
-          null,
-          2,
-        )}`;
+    return scriptUdfCalls
+      .map((udfCall) => {
+        const correspondingVariable = variables.find(
+          (variable) => this.sandboxContext[variable] === udfCall.returnValue,
+        );
+        return `// UDF: ${udfCall.udfName}\n${
+          correspondingVariable ? `${correspondingVariable}:` : ''
+        }${JSON.stringify(udfCall.returnValue, null, 2)}`;
       })
       .join('\n\n');
   }

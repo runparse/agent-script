@@ -235,7 +235,8 @@ export class AgentsInstrumentation extends InstrumentationBase<InstrumentationCo
             attributes: {
               [SemanticConventions.OPENINFERENCE_SPAN_KIND]:
                 OpenInferenceSpanKind.LLM,
-              [SemanticConventions.LLM_MODEL_NAME]: request.model || 'gpt-4o',
+              [SemanticConventions.LLM_MODEL_NAME]:
+                request.model || this.options.model || 'gpt-4o',
               [SemanticConventions.INPUT_VALUE]: JSON.stringify(request),
               [SemanticConventions.INPUT_MIME_TYPE]: MimeType.JSON,
               [SemanticConventions.LLM_INVOCATION_PARAMETERS]:

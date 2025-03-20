@@ -18,7 +18,7 @@ import { Static, TSchema } from '@sinclair/typebox';
 import { IParticleAgentNavigationHistoryItem } from '../../types';
 import { particleAgentPrompt } from './particleAgent.prompt';
 import { PageGoBackUdf } from '../../udf/browser/pageGoBack';
-import { generateDefaultJsonSchemaInstance } from '@runparse/web-agents';
+import { generateDefaultJsonSchemaInstance } from '../../utils/schema';
 
 export interface IParticleAgentProps
   extends Omit<PartialBy<ICodeAgentProps, 'description' | 'prompts'>, 'udfs'> {
@@ -41,6 +41,7 @@ export class ParticleAgent extends CodeAgent {
       new PageNavigateUrlUdf(),
       new PageGoBackUdf(),
       new PageExtractDataUdf({
+        model: props.model,
         objectSchema: props.dataObjectSchema,
       }),
       new DatasheetWriteUdf({}),

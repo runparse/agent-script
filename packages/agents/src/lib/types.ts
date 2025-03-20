@@ -24,7 +24,16 @@ export interface IChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
   images?: string[];
-  raw?: any;
+  raw?: {
+    role: 'assistant';
+    content: string | null;
+    tool_calls?:
+      | {
+          type: 'function';
+          function: { arguments: string; name: string };
+        }[]
+      | undefined;
+  };
 }
 
 export interface IAgentError {
@@ -100,6 +109,14 @@ export interface IChatResponseMetadata {
 
 export interface IChatModel {
   chatCompletion<P extends LLMProvider>(
+    request: {
+      messages: ChatCompletionMessageParam[];
+    } & Partial<CompletionNonStreaming<P>>,
+  ): Promise<{
+    message: IChatMessage;
+    metadata: IChatResponseMetadata;
+  }>;
+  chatCompletionWithSchema<P extends LLMProvider>(
     request: {
       messages: ChatCompletionMessageParam[];
     } & Partial<CompletionNonStreaming<P>>,

@@ -11,7 +11,8 @@
   "dependencies": {
     "nunjucks": "3.2.4",
     "duck-duck-scrape": "2.2.7",
-    "axios": "1.8.2"
+    "axios": "1.8.2",
+    "openai": "^4.52.2"
   },
   "peerDependencies": {
     "@sinclair/typebox": ">=0.34.28"

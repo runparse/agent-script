@@ -21,6 +21,9 @@ export class PageGoBackUdf extends PageActionUdf {
     agent: IParticleAgent,
   ): Promise<Static<typeof this.outputSchema>> {
     await agent.page.goBack();
+    return {
+      success: true,
+    };
   }
 
   override async onBeforeCall(

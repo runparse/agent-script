@@ -1,4 +1,4 @@
-import { TObject, TProperties, Type } from '@sinclair/typebox';
+import { Kind, TObject, TProperties, Type } from '@sinclair/typebox';
 import { TSchema } from '@sinclair/typebox';
 import { JSONSchema7 } from 'json-schema';
 import { JsonSchemaInstance, JsonSchemaObjectInstance } from './lang';
@@ -144,8 +144,13 @@ export function generateDefaultJsonSchemaInstance(
     case 'array':
       return [generateDefaultJsonSchemaInstance(schema.items as TSchema)];
     case 'null':
-      throw new Error(`Unsupported schema type: ${schema.type}`);
+      throw new Error(`Unsupported schema type: ${JSON.stringify(schema)}`);
     default:
-      throw new Error(`Unsupported schema type: ${schema.type}`);
+      switch (schema[Kind]) {
+        case 'Union':
+          return generateDefaultJsonSchemaInstance(schema.anyOf[0] as TSchema);
+        default:
+          throw new Error(`Unsupported schema type: ${JSON.stringify(schema)}`);
+      }
   }
 }

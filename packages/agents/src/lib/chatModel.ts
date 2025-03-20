@@ -48,4 +48,59 @@ export class ChatModel implements IChatModel {
       },
     };
   }
+
+  async chatCompletionWithSchema<P extends LLMProvider>(
+    request: {
+      messages: ChatCompletionMessageParam[];
+    } & Partial<CompletionNonStreaming<P>>,
+  ): Promise<{
+    message: IChatMessage;
+    metadata: IChatResponseMetadata;
+  }> {
+    // @ts-ignore
+    const responseFormat = request.response_format;
+    // @ts-ignore
+    if (responseFormat?.type !== 'json_schema') {
+      throw new ChatCompletionError('response_format must be a json_schema');
+    }
+    const provider = this.options.provider;
+    if (provider === 'anthropic') {
+      const dataExtractionTool = {
+        name: 'extractDataEntities',
+        description: 'Extracts data entities from given content',
+        // @ts-ignore
+        parameters: responseFormat.json_schema.schema,
+      };
+      request.tools = [
+        {
+          function: dataExtractionTool,
+          type: 'function',
+        },
+      ];
+
+      const response = await this.chatCompletion(request);
+      const toolCall = response.message.raw?.tool_calls?.[0];
+      if (!toolCall) {
+        throw new ChatCompletionError(
+          'Failed to extract data: no tool call returned from chat completion using Anthropic',
+        );
+      }
+      return {
+        message: {
+          role: response.message.role,
+          content: toolCall.function.arguments,
+          raw: response.message.raw,
+        },
+        metadata: {
+          usage: {
+            promptTokens: response.metadata.usage.promptTokens,
+            completionTokens: response.metadata.usage.completionTokens,
+            totalTokens: response.metadata.usage.totalTokens,
+          },
+        },
+      };
+    }
+
+    return this.chatCompletion(request);
+  }
 }

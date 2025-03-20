@@ -101,7 +101,7 @@ Use the \`await think\` UDF to think about the task if you are stuck or not maki
 
 ${buildExamplesSectionPrompt(particleAgentExamples)}
 
-Above example were using notional UDFs that might not exist for you. On top of performing computations in the Javascript code snippets that you create, you only have access to these UDFs (in additional to any built-in functions):
+Above examples were using notional UDFs that might not exist for you. On top of performing computations in the Javascript code snippets that you create, you only have access to these UDFs (in additional to any built-in functions):
 \`\`\`js
 {%- for udf in udfs.values() %}
 {{ udf.getSignature() | safe }}{{ '\\n' }}

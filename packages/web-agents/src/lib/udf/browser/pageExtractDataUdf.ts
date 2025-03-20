@@ -1,6 +1,6 @@
 import { Type, TSchema, Static } from '@sinclair/typebox';
 import { PageUdf } from './pageUdf';
-import { IChatModel } from '@runparse/agents';
+import { IChatModel, typeboxToTsString } from '@runparse/agents';
 import TurndownService from 'turndown';
 import { CompletionNonStreaming, LLMProvider } from 'token.js/dist/chat';
 import { IParticleAgent } from '../../types';
@@ -67,7 +67,7 @@ export class PageExtractDataUdf extends PageUdf {
 
     const bodyMarkdown = getBodyMarkdown(content);
 
-    const response = await this.model.chatCompletion(
+    const response = await this.model.chatCompletionWithSchema(
       getDataExtractionPrompt(
         bodyMarkdown,
         this.visualMode
@@ -107,7 +107,9 @@ function getDataExtractionPrompt(
   const messages = [
     {
       role: 'system',
-      content: `You are a helpful assistant that can answer questions about a webpage. Use only the information provided in the html document. Return an empty type response if no relevant information is found. Here is the user's instruction: ${instructions}`,
+      content: `You are a helpful assistant that can answer questions about a webpage. Use only the information provided in the html document. Return an empty type response if no relevant information is found. Here is the user's instruction: ${instructions}. Your output must be a valid JSON object that matches the typescript type ${typeboxToTsString(
+        schema.properties.data,
+      )}.`,
     },
     ...(screenshotBase64
       ? [

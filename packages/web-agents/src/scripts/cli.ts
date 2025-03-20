@@ -4,6 +4,7 @@ import { Option, program } from 'commander';
 import playwright from 'playwright';
 import { ParticleAgent } from '../lib/agents/particleAgent';
 import { createTSchemaFromInstance } from '../lib/utils/schema';
+import { ChatModel } from '@runparse/agents';
 setup();
 
 program
@@ -40,6 +41,11 @@ program
         instructions: options.instructions,
         dataObjectSchema: schema,
         shouldRunPlanning: true,
+        model: new ChatModel({
+          provider: 'anthropic',
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 4096,
+        }),
       });
       // setTimeout(() => {
       //   agent.updateShouldRunPlanning(true);

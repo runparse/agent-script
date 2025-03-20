@@ -78,7 +78,7 @@ In the end you have to call \`await finalAnswer\` UDF with the final answer as t
 
 ${buildExamplesSectionPrompt(codeAgentExamples)}
 
-Above example were using notional UDFs that might not exist for you. On top of performing computations in the Javascript code snippets that you create, you only have access to these UDFs (in additional to any built-in functions):
+Above examples were using notional UDFs that might not exist for you. On top of performing computations in the Javascript code snippets that you create, you only have access to these UDFs (in additional to any built-in functions):
 \`\`\`js
 {%- for udf in udfs.values() %}
 {{ udf.getSignature() | safe }}{{ '\\n' }}
