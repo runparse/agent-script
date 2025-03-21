@@ -27,12 +27,10 @@ export interface IChatMessage {
   raw?: {
     role: 'assistant';
     content: string | null;
-    tool_calls?:
-      | {
-          type: 'function';
-          function: { arguments: string; name: string };
-        }[]
-      | undefined;
+    tool_calls?: {
+      type: 'function';
+      function: { arguments: string; name: string };
+    }[];
   };
 }
 

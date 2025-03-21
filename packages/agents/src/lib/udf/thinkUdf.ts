@@ -15,5 +15,6 @@ export class ThinkUdf extends BaseUdf {
     agent: ICodeAgent,
   ): Promise<Static<typeof this.outputSchema>> {
     agent.updateShouldRunPlanning(true);
+    return 'Thinking...';
   }
 }

@@ -7,7 +7,9 @@ export class CallAgentUdf extends BaseUdf {
   description: string;
 
   inputSchema = Type.Object({
-    task: Type.String(),
+    task: Type.String({
+      description: 'The task to be performed by the agent',
+    }),
   });
   outputSchema: TSchema;
 

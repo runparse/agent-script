@@ -10,7 +10,6 @@ import {
   SystemPromptStep,
   TaskStep,
 } from './agentMemory';
-import { BufferedConsole } from './bufferedConsole';
 import { ChatModel } from './chatModel';
 import { AgentError, AgentErrorCode } from './errors';
 import {
@@ -32,6 +31,7 @@ import { codeAgentPrompt } from './codeAgent.prompt';
 import { CallAgentUdf } from './udf/callAgentUdf';
 import { FinalAnswerUdf } from './udf/finalAnswerUdf';
 import { TerminateUdf } from './udf/terminateUdf';
+import { Sandbox } from './sandbox';
 
 export interface ICodeAgentProps {
   task: string;
@@ -58,7 +58,7 @@ export class CodeAgent implements ICodeAgent {
   description: string;
   udfs: IUdf[];
   authorizedImports: string[];
-  sandboxContext: vm.Context;
+  sandbox: Sandbox;
   model: IChatModel;
   prompts: IAgentPrompt;
   memory: AgentMemory;
@@ -70,7 +70,7 @@ export class CodeAgent implements ICodeAgent {
   planningInterval?: number;
   logger: IAgentLogger;
 
-  private shouldRunPlanning: boolean;
+  protected shouldRunPlanning: boolean;
 
   constructor(props: ICodeAgentProps) {
     this.task = props.task;
@@ -99,7 +99,12 @@ export class CodeAgent implements ICodeAgent {
       }),
     );
     this.authorizedImports = props.authorizedImports || [];
-    this.sandboxContext = props.sandboxContext || vm.createContext();
+    this.sandbox = new Sandbox(props.sandboxContext || vm.createContext());
+    this.udfs.forEach((udf) => {
+      this.sandbox.register(udf.name, (args: any) =>
+        this.callUdf(udf.name, args),
+      );
+    });
     this.prompts = props.prompts || codeAgentPrompt;
     this.maxSteps = props.maxSteps;
     this.maxMemoryTokenCount = props.maxMemoryTokenCount || 128 * 1000;
@@ -129,7 +134,7 @@ export class CodeAgent implements ICodeAgent {
     this.validate();
   }
 
-  validate() {
+  protected validate() {
     const warnings: string[] = [];
     for (const udf of this.udfs) {
       walkTypeboxSchema(udf.inputSchema, (schema, schemaPath) => {
@@ -154,12 +159,7 @@ export class CodeAgent implements ICodeAgent {
     }
   }
 
-  writeMemoryToMessages(summaryMode = false): IChatMessage[] {
-    /**
-     * Reads past llm_outputs, actions, and observations or errors from the memory into a series of messages
-     * that can be used as input to the LLM. Adds a number of keywords (such as PLAN, error, etc) to help
-     * the LLM.
-     */
+  protected writeMemoryToMessages(summaryMode = false): IChatMessage[] {
     const messages = this.memory.systemPrompt.toMessages({
       summaryMode,
       showModelInputMessages: false,
@@ -177,55 +177,6 @@ export class CodeAgent implements ICodeAgent {
     return messages;
   }
 
-  /**
-   * Provide the final answer to the task, based on the logs of the agent's interactions.
-   *
-   * @param task Task to perform
-   * @param images Optional paths to images
-   * @returns Final answer to the task
-   */
-  async provideFinalAnswer(task: string, images?: string[]): Promise<string> {
-    const messages: IChatMessage[] = [
-      {
-        role: 'system',
-        content: this.prompts.finalAnswer.preMessages,
-      },
-    ];
-
-    if (images?.length) {
-      // Add image content if images are provided
-      messages[0]!.content += '\n[Image content]';
-    }
-
-    // Add memory messages, excluding the first system message
-    messages.push(...this.writeMemoryToMessages().slice(1));
-
-    // Add final user message
-    messages.push({
-      role: 'user',
-      content: nunjucks.renderString(this.prompts.finalAnswer.postMessages, {
-        task,
-      }),
-    });
-
-    try {
-      const { message } = await this.model.chatCompletion({
-        messages: toChatCompletionMessageParam(messages),
-      });
-      return message.content;
-    } catch (error) {
-      return `Error in generating final LLM output:\n${error}`;
-    }
-  }
-
-  /**
-   * Execute UDF with the provided input and returns the result.
-   * This method replaces arguments with the actual values from the state if they refer to state variables.
-   *
-   * @param udfName Name of the UDF to execute (should be one from this.udfs)
-   * @param arguments Arguments passed to the UDF
-   * @returns Result from executing the UDF
-   */
   async callUdf(udfName: string, input: TSchema): Promise<Static<TSchema>> {
     const udf = this.udfs.find((t) => t.name === udfName) as IUdf;
 
@@ -260,13 +211,6 @@ export class CodeAgent implements ICodeAgent {
     }
   }
 
-  /**
-   * Run the agent and return a generator of all steps.
-   *
-   * @param task Task to perform
-   * @param images Optional paths to images
-   * @returns Generator of memory steps and final output
-   */
   async run(
     task: string,
     { images }: { images?: string[] },
@@ -349,10 +293,6 @@ export class CodeAgent implements ICodeAgent {
 
   /**
    * Used periodically by the agent to plan the next steps to reach the objective.
-   *
-   * @param task Task to perform
-   * @param isFirstStep If this step is not the first one, the plan should be an update over a previous plan
-   * @param step The number of the current step, used as an indication for the LLM
    */
   async planningStep(): Promise<void> {
     if (this.stepNumber == 1) {
@@ -486,22 +426,8 @@ export class CodeAgent implements ICodeAgent {
   }
 
   /**
-   * Prints a pretty replay of the agent's steps.
-   *
-   * @param detailed If true, also displays the memory at each step. Defaults to false.
-   *                 Careful: will increase log length exponentially. Use only for debugging.
-   */
-  replay(detailed = false): void {
-    this.memory.replay(this.logger, detailed);
-  }
-
-  /**
    * Adds additional prompting for the managed agent, runs it, and wraps the output.
    * This method is called only by a managed agent.
-   *
-   * @param task Task to perform
-   * @param kwargs Additional arguments to pass to run()
-   * @returns Formatted report of the agent's work
    */
   async call(task: string, kwargs: any): Promise<Static<this['outputSchema']>> {
     const fullTask = nunjucks.renderString(this.prompts.managedAgent.task, {
@@ -519,7 +445,7 @@ export class CodeAgent implements ICodeAgent {
     return answer;
   }
 
-  errorCircuitBreaker(): boolean {
+  protected errorCircuitBreaker(): boolean {
     const actionSteps = this.memory.steps.filter(
       (step) => step instanceof ActionStep,
     ) as ActionStep[];
@@ -629,107 +555,28 @@ export class CodeAgent implements ICodeAgent {
   }
 
   async executeScript(
-    scriptCode: string,
+    script: string,
   ): Promise<{ result: unknown; output: string; isFinalAnswer: boolean }> {
-    function trap(reason: any) {
-      if (reason instanceof Error) {
-        bufferedConsole.log(`UnhandledPromiseRejection: ${reason.message}`);
-      } else {
-        bufferedConsole.log(`UnhandledPromiseRejection: ${reason}`);
-      }
-    }
-    process.on('unhandledRejection', trap);
-
-    const scriptUdfCalls: {
-      returnValue: unknown;
-      udfName: string;
-    }[] = [];
-    const bufferedConsole = new BufferedConsole();
-
-    this.udfs.forEach((udf) => {
-      this.sandboxContext[udf.name] = async (input: unknown) => {
-        try {
-          const result = await this.callUdf(udf.name, input as TSchema);
-          scriptUdfCalls.push({
-            returnValue: result,
-            udfName: udf.name,
-          });
-          return result;
-        } catch (error: any) {
-          throw new AgentError({
-            message: `Error calling UDF ${udf.name}: ${error.message}`,
-            code: AgentErrorCode.UDF_EXECUTION_ERROR,
-          });
-        }
-      };
-    });
-    this.sandboxContext.console = bufferedConsole;
-
     try {
-      const sandboxExistingKeys = new Set(Object.keys(this.sandboxContext));
-      const result = await vm.runInContext(
-        `(async () => {
-          ${scriptCode}
-        })()`,
-        this.sandboxContext,
+      const { returnValue, calls, output } = await this.sandbox.executeScript(
+        script,
       );
-      const sandboxNewKeys = Array.from(
-        Object.keys(this.sandboxContext),
-      ).filter((key) => !sandboxExistingKeys.has(key));
-      if (sandboxNewKeys.length > 0) {
-        bufferedConsole.log(
-          this.formatUdfCallResults(sandboxNewKeys, scriptUdfCalls),
-        );
-      }
 
-      if (
-        scriptUdfCalls.find((result) => result.udfName === 'terminate') &&
-        scriptUdfCalls.length > 1
-      ) {
-        throw new AgentError({
-          message: 'Termate UDF must be called in its own step.',
-          code: AgentErrorCode.PREMATURE_TERMINATE,
-        });
-      }
-
+      const terminatingCall = calls.find(
+        (result) =>
+          result.callable === 'finalAnswer' || result.callable === 'terminate',
+      );
       return {
-        result:
-          result || scriptUdfCalls[scriptUdfCalls.length - 1]?.returnValue,
-        isFinalAnswer:
-          scriptUdfCalls.find(
-            (result) =>
-              result.udfName === 'finalAnswer' ||
-              result.udfName === 'terminate',
-          )?.returnValue !== undefined,
-        output: bufferedConsole.getOutput(),
+        result: returnValue || terminatingCall?.returnValue,
+        isFinalAnswer: terminatingCall !== undefined,
+        output,
       };
     } catch (error: any) {
       throw new AgentError({
         message: `Script execution failed: ${error.message}`,
         code: AgentErrorCode.SCRIPT_EXECUTION_FAILED,
       });
-    } finally {
-      setTimeout(() => process.off('unhandledRejection', trap), 100);
     }
-  }
-
-  formatUdfCallResults(
-    variables: string[],
-    scriptUdfCalls: {
-      returnValue: unknown;
-      udfName: string;
-    }[],
-  ): string {
-    return scriptUdfCalls
-      .map((udfCall) => {
-        const correspondingVariable = variables.find(
-          (variable) => this.sandboxContext[variable] === udfCall.returnValue,
-        );
-        return `// UDF: ${udfCall.udfName}\n${
-          correspondingVariable ? `${correspondingVariable}:` : ''
-        }${JSON.stringify(udfCall.returnValue, null, 2)}`;
-      })
-      .join('\n\n');
   }
 
   parseCodeOutput(content: string): string {
@@ -739,18 +586,6 @@ export class CodeAgent implements ICodeAgent {
     const match = sanitizedContent.match(pattern);
     if (!match || match.length < 2) {
       return sanitizedContent;
-      //       throw new AgentError({
-      //         message: `Your code snippet is invalid, because the regex pattern ${pattern} was not found in it.
-      // Here is your code snippet:
-      // ${sanitizedContent}
-      // Make sure to include code with the correct pattern, for instance:
-      // Thoughts: Your thoughts
-      // Code:
-      // \`\`\`js
-      // // Your javascript code here
-      // \`\`\`<end_code>`,
-      //         code: AgentErrorCode.INVALID_CODE_PATTERN,
-      //       });
     }
     const code = match[1]!;
     return code;
