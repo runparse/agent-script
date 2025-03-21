@@ -10,6 +10,7 @@ export class ChatCompletionError extends Error {
 }
 
 export enum AgentErrorCode {
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
   UDF_NOT_FOUND = 'UDF_NOT_FOUND',
   SCRIPT_EXECUTION_FAILED = 'SCRIPT_EXECUTION_FAILED',
   PARSING_ERROR = 'PARSING_ERROR',

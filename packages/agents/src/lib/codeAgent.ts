@@ -28,6 +28,10 @@ import {
   truncateContent,
   walkTypeboxSchema,
 } from './utils';
+import { codeAgentPrompt } from './codeAgent.prompt';
+import { CallAgentUdf } from './udf/callAgentUdf';
+import { FinalAnswerUdf } from './udf/finalAnswerUdf';
+import { TerminateUdf } from './udf/terminateUdf';
 
 export interface ICodeAgentProps {
   task: string;
@@ -36,7 +40,7 @@ export interface ICodeAgentProps {
   udfs: IUdf[];
   authorizedImports?: string[];
   sandboxContext?: vm.Context;
-  prompts: IAgentPrompt;
+  prompts?: IAgentPrompt;
   maxSteps: number;
   maxMemoryTokenCount?: number;
   model?: IChatModel;
@@ -75,7 +79,7 @@ export class CodeAgent implements ICodeAgent {
     this.udfs = props.udfs;
     if (
       !this.udfs.some(
-        (udf) => udf.name === 'finalAnswer' || udf.name === 'terminate',
+        (udf) => udf instanceof FinalAnswerUdf || udf instanceof TerminateUdf,
       )
     ) {
       throw new AgentError({
@@ -84,9 +88,19 @@ export class CodeAgent implements ICodeAgent {
         code: AgentErrorCode.UDF_NOT_FOUND,
       });
     }
+    this.managedAgents = props.managedAgents || [];
+    this.udfs.push(
+      ...this.managedAgents.map((agent) => {
+        return new CallAgentUdf({
+          agentName: agent.name,
+          agentDescription: agent.description,
+          agentOutputSchema: agent.outputSchema,
+        });
+      }),
+    );
     this.authorizedImports = props.authorizedImports || [];
     this.sandboxContext = props.sandboxContext || vm.createContext();
-    this.prompts = props.prompts;
+    this.prompts = props.prompts || codeAgentPrompt;
     this.maxSteps = props.maxSteps;
     this.maxMemoryTokenCount = props.maxMemoryTokenCount || 128 * 1000;
     this.model =
@@ -106,7 +120,6 @@ export class CodeAgent implements ICodeAgent {
         }),
       );
     this.outputSchema = props.outputSchema || Type.Any();
-    this.managedAgents = props.managedAgents || [];
     this.planningInterval = props.planningInterval;
     this.logger = props.logger || new AgentLogger();
     this.shouldRunPlanning = props.shouldRunPlanning || false;
@@ -128,6 +141,12 @@ export class CodeAgent implements ICodeAgent {
             `UDF ${udf.name} has an input schema ${schemaPath} that is a primitive type but has no description.`,
           );
         }
+      });
+    }
+    if (this.udfs.length > new Set(this.udfs.map((udf) => udf.name)).size) {
+      throw new AgentError({
+        message: 'UDF names must be unique.',
+        code: AgentErrorCode.VALIDATION_ERROR,
       });
     }
     if (warnings.length > 0) {
@@ -208,22 +227,6 @@ export class CodeAgent implements ICodeAgent {
    * @returns Result from executing the UDF
    */
   async callUdf(udfName: string, input: TSchema): Promise<Static<TSchema>> {
-    const managedAgent = this.managedAgents.find(
-      (a) => a.name === udfName,
-    ) as IAgent;
-
-    if (managedAgent) {
-      try {
-        return managedAgent.call(this.task, input);
-      } catch (error: any) {
-        const errorMsg = `Error in calling team member: ${error.message}\nYou should only ask this team member with a correct request.\nAs a reminder, this team member's description is the following:\n${managedAgent.description}`;
-        throw new AgentError({
-          message: errorMsg,
-          code: AgentErrorCode.MANAGED_AGENT_ERROR,
-        });
-      }
-    }
-
     const udf = this.udfs.find((t) => t.name === udfName) as IUdf;
 
     if (!udf) {
@@ -500,7 +503,7 @@ export class CodeAgent implements ICodeAgent {
    * @param kwargs Additional arguments to pass to run()
    * @returns Formatted report of the agent's work
    */
-  async call(task: string, kwargs: any): Promise<string> {
+  async call(task: string, kwargs: any): Promise<Static<this['outputSchema']>> {
     const fullTask = nunjucks.renderString(this.prompts.managedAgent.task, {
       name: this.name,
       task,
@@ -675,7 +678,7 @@ export class CodeAgent implements ICodeAgent {
       ).filter((key) => !sandboxExistingKeys.has(key));
       if (sandboxNewKeys.length > 0) {
         bufferedConsole.log(
-          this.formatUdfCalls(sandboxNewKeys, scriptUdfCalls),
+          this.formatUdfCallResults(sandboxNewKeys, scriptUdfCalls),
         );
       }
 
@@ -710,7 +713,7 @@ export class CodeAgent implements ICodeAgent {
     }
   }
 
-  formatUdfCalls(
+  formatUdfCallResults(
     variables: string[],
     scriptUdfCalls: {
       returnValue: unknown;

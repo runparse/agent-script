@@ -85,17 +85,6 @@ Above examples were using notional UDFs that might not exist for you. On top of 
 {%- endfor %}
 \`\`\`
 
-{%- if managedAgents and managedAgents | length %}
-You can also give tasks to team members.
-Calling a team member works the same as for calling a UDF: simply, the only argument you can give in the call is 'task', a long string explaining your task.
-Given that this team member is a real human, you should be very verbose in your task.
-Here is a list of the team members that you can call:
-{%- for agent in managedAgents.values() %}
-- {{ agent.name }}: {{ agent.description }}
-{%- endfor %}
-{%- else %}
-{%- endif %}
-
 ${buildCodeAgentRulesPrompt()}
 
 {{ description | safe }}
@@ -181,7 +170,7 @@ Now write your new list of facts below.`,
 
 You have been given a task:
 \`\`\`
-{{task}}
+{{task | safe}}
 \`\`\`
 
 Find below the record of what has been tried so far to solve it. Then you will be asked to make an updated plan to solve the task.
@@ -189,7 +178,7 @@ If the previous tries so far have met some success, you can make an updated plan
 If you are stalled, you can make a completely new plan starting from scratch.`,
     updatePlanPostMessages: `You're still working towards solving this task:
 \`\`\`
-{{task}}
+{{task | safe}}
 \`\`\`
 
 You can leverage these UDFs:
@@ -228,7 +217,7 @@ Now write your new plan below.`,
   You have been submitted this task by your manager.
   ---
   Task:
-  {{task}}
+  {{task | safe}}
   ---
   You're helping your manager solve a wider task: so make sure to not provide a one-line answer, but give as much information as possible to give them a clear understanding of the answer.
 
