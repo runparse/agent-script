@@ -7,8 +7,10 @@ import {
   ISystemPromptStep,
   ITaskStep,
   IAgentError,
+  Observation,
 } from './types';
 import { IAgentMemory as IAgentMemory } from './types';
+import { observationToChatMessage } from './utils';
 
 export class ActionStep implements IActionStep {
   modelInputMessages?: IChatMessage[];
@@ -19,8 +21,7 @@ export class ActionStep implements IActionStep {
   duration?: number;
   modelOutputMessage?: IChatMessage;
   modelOutput?: string;
-  observations?: string;
-  observationsImages?: string[];
+  observations: Observation[];
   actionOutput?: any;
 
   constructor({
@@ -33,7 +34,6 @@ export class ActionStep implements IActionStep {
     modelOutputMessage,
     modelOutput,
     observations,
-    observationsImages,
     actionOutput,
   }: {
     modelInputMessages?: IChatMessage[];
@@ -44,8 +44,7 @@ export class ActionStep implements IActionStep {
     duration?: number;
     modelOutputMessage?: IChatMessage;
     modelOutput?: string;
-    observations?: string;
-    observationsImages?: string[];
+    observations?: Observation[];
     actionOutput?: any;
   }) {
     this.modelInputMessages = modelInputMessages;
@@ -56,8 +55,7 @@ export class ActionStep implements IActionStep {
     this.duration = duration;
     this.modelOutputMessage = modelOutputMessage;
     this.modelOutput = modelOutput;
-    this.observations = observations;
-    this.observationsImages = observationsImages;
+    this.observations = observations || [];
     this.actionOutput = actionOutput;
   }
 
@@ -84,12 +82,7 @@ export class ActionStep implements IActionStep {
       });
     }
 
-    if (this.observations) {
-      messages.push({
-        role: 'user',
-        content: `Observation:\n${this.observations}`,
-      });
-    }
+    messages.push(...this.observations.map(observationToChatMessage));
 
     if (this.error) {
       const errorMessage =
@@ -100,14 +93,6 @@ export class ActionStep implements IActionStep {
       messages.push({
         role: 'user',
         content: errorMessage,
-      });
-    }
-
-    if (this.observationsImages) {
-      messages.push({
-        role: 'user',
-        content: 'Here are the observed images:',
-        images: this.observationsImages,
       });
     }
 
@@ -170,11 +155,17 @@ export class PlanningStep implements IPlanningStep {
 
 export class TaskStep implements ITaskStep {
   task: string;
-  taskImages: string[];
+  observations: Observation[];
 
-  constructor({ task, taskImages }: { task: string; taskImages?: string[] }) {
+  constructor({
+    task,
+    observations,
+  }: {
+    task: string;
+    observations?: Observation[];
+  }) {
     this.task = task;
-    this.taskImages = taskImages || [];
+    this.observations = observations || [];
   }
 
   toMessages({

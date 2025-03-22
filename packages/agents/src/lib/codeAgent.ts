@@ -1,7 +1,6 @@
 import { Static, TSchema, Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
 import nunjucks from 'nunjucks';
-import vm from 'vm';
 import { AgentLogger } from './agentLogger';
 import {
   ActionStep,
@@ -11,7 +10,9 @@ import {
   TaskStep,
 } from './agentMemory';
 import { ChatModel } from './chatModel';
+import { codeAgentPrompt } from './codeAgent.prompt';
 import { AgentError, AgentErrorCode } from './errors';
+import { Sandbox } from './sandbox';
 import {
   IAgent,
   IAgentLogger,
@@ -19,19 +20,17 @@ import {
   IChatMessage,
   IChatModel,
   ICodeAgent,
+  ISandbox,
   IUdf,
   LogLevel,
+  Observation,
 } from './types';
+import { CallAgentUdf, FinalAnswerUdf, TerminateUdf } from './udf';
 import {
   toChatCompletionMessageParam,
   truncateContent,
   walkTypeboxSchema,
 } from './utils';
-import { codeAgentPrompt } from './codeAgent.prompt';
-import { CallAgentUdf } from './udf/callAgentUdf';
-import { FinalAnswerUdf } from './udf/finalAnswerUdf';
-import { TerminateUdf } from './udf/terminateUdf';
-import { Sandbox } from './sandbox';
 
 export interface ICodeAgentProps {
   task: string;
@@ -39,7 +38,7 @@ export interface ICodeAgentProps {
   description: string;
   udfs: IUdf[];
   authorizedImports?: string[];
-  sandboxContext?: vm.Context;
+  sandbox?: Sandbox;
   prompts?: IAgentPrompt;
   maxSteps: number;
   maxMemoryTokenCount?: number;
@@ -58,7 +57,7 @@ export class CodeAgent implements ICodeAgent {
   description: string;
   udfs: IUdf[];
   authorizedImports: string[];
-  sandbox: Sandbox;
+  sandbox: ISandbox;
   model: IChatModel;
   prompts: IAgentPrompt;
   memory: AgentMemory;
@@ -99,7 +98,7 @@ export class CodeAgent implements ICodeAgent {
       }),
     );
     this.authorizedImports = props.authorizedImports || [];
-    this.sandbox = new Sandbox(props.sandboxContext || vm.createContext());
+    this.sandbox = props.sandbox || new Sandbox();
     this.udfs.forEach((udf) => {
       this.sandbox.register(udf.name, (args: any) =>
         this.callUdf(udf.name, args),
@@ -213,7 +212,7 @@ export class CodeAgent implements ICodeAgent {
 
   async run(
     task: string,
-    { images }: { images?: string[] },
+    { observations }: { observations?: Observation[] },
   ): Promise<Static<this['outputSchema']>> {
     let finalAnswer: Static<this['outputSchema']> | undefined = undefined;
     this.task = task;
@@ -228,9 +227,7 @@ export class CodeAgent implements ICodeAgent {
     });
     this.logger.logTask(this.task.trim());
 
-    this.memory.steps.push(
-      new TaskStep({ task: this.task, taskImages: images }),
-    );
+    this.memory.steps.push(new TaskStep({ task: this.task, observations }));
 
     while (
       finalAnswer === undefined &&
@@ -246,7 +243,7 @@ export class CodeAgent implements ICodeAgent {
       const memoryStep = new ActionStep({
         stepNumber: this.stepNumber,
         startTime: stepStartTime,
-        observationsImages: images,
+        observations,
       });
       this.memory.steps.push(memoryStep);
 
@@ -329,9 +326,9 @@ export class CodeAgent implements ICodeAgent {
       });
       const answerPlan = chatMessagePlan.content;
 
-      const finalPlanRedaction = `Here is the plan of action that I will follow to solve the task:\n\`\`\`\n${answerPlan}\n\`\`\``;
+      const finalPlanRedaction = `Here is the plan of action that I will follow to solve the task:\n\n${answerPlan}\n`;
       const finalFactsRedaction =
-        `Here are the facts that I know so far:\n\`\`\`\n${answerFacts}\n\`\`\``.trim();
+        `Here are the facts that I know so far:\n\n${answerFacts}\n`.trim();
 
       const planningStep = new PlanningStep({
         modelInputMessages: inputMessages,
@@ -502,18 +499,22 @@ export class CodeAgent implements ICodeAgent {
         memoryStep.modelOutput = scriptCode;
 
         if (output) {
-          memoryStep.observations = `-- UDF call results --\n${truncateContent(
-            output,
-          )}`;
+          memoryStep.observations.push({
+            type: 'text',
+            text: `-- Script execution results --\n${truncateContent(output)}`,
+          });
           this.logger.logMarkdown({
             content: output,
-            title: '-- UDF call results --',
+            title: '-- Script execution results --',
           });
         } else {
-          memoryStep.observations = `-- UDF call results --\nNo output from UDF calls`;
+          memoryStep.observations.push({
+            type: 'text',
+            text: `-- Script execution results --\nNo output from script execution`,
+          });
           this.logger.logMarkdown({
-            content: 'No output from UDF calls',
-            title: '-- UDF call results --',
+            content: 'No output from script execution',
+            title: '-- Script execution results --',
           });
         }
 

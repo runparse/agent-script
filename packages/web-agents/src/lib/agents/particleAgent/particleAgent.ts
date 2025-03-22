@@ -104,7 +104,9 @@ export class ParticleAgent extends CodeAgent {
     for (const step of this.memory.steps) {
       if (!(step instanceof ActionStep)) continue;
       if (step.stepNumber <= currentStep.stepNumber - 2) {
-        step.observationsImages = undefined;
+        step.observations = step.observations?.filter(
+          (o) => !(o.type === 'image' && o.context?.includes('screenshot')),
+        );
       }
     }
 

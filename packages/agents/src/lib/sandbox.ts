@@ -1,16 +1,11 @@
-import { BufferedConsole } from './bufferedConsole';
 import * as vm from 'vm';
-import { AgentErrorCode } from './errors';
-import { AgentError } from './errors';
-
-export interface ICallableResult {
-  returnValue: unknown;
-  callable: string;
-}
+import { BufferConsole } from './bufferConsole';
+import { AgentError, AgentErrorCode } from './errors';
+import { ICallableResult } from './types';
 
 export class Sandbox {
   constructor(
-    public vmContext: vm.Context,
+    public vmContext: vm.Context = vm.createContext(),
     public callHistory: ICallableResult[][] = [],
   ) {}
 
@@ -33,7 +28,7 @@ export class Sandbox {
   async executeScript(
     script: string,
   ): Promise<{ calls: ICallableResult[]; returnValue: any; output: string }> {
-    const sandboxConsole = new BufferedConsole();
+    const sandboxConsole = new BufferConsole();
     function trap(reason: any) {
       if (reason instanceof Error) {
         sandboxConsole.log(`UnhandledPromiseRejection: ${reason.message}`);
@@ -88,7 +83,7 @@ export class Sandbox {
         const correspondingVariable = variables.find(
           (variable) => this.vmContext[variable] === call.returnValue,
         );
-        return `// ${call.callable}\n${
+        return `// ${call.callable} -> \n${
           correspondingVariable ? `${correspondingVariable} = ` : ''
         }${JSON.stringify(call.returnValue, null, 2)}`;
       })

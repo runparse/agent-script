@@ -1,5 +1,5 @@
 import { ChatCompletionMessageParam } from 'token.js';
-import { IChatMessage } from './types';
+import { IChatMessage, Observation } from './types';
 import { TObject, TSchema, Hint, TEnum, TArray } from '@sinclair/typebox';
 
 export function toChatCompletionMessageParam(
@@ -28,6 +28,26 @@ export function toChatCompletionMessageParam(
         return { ...message, role: 'assistant' };
     }
   });
+}
+
+export function observationToChatMessage(
+  observation: Observation,
+): IChatMessage {
+  const source = observation.source ? `\nSource: ${observation.source}` : '';
+  const context = observation.context
+    ? `\nContext: ${observation.context}`
+    : '';
+  if (observation.type === 'text') {
+    return {
+      role: 'user',
+      content: `Observation:${observation.text}${context}${source}`,
+    };
+  }
+  return {
+    role: 'user',
+    content: `Observation Image:${context}${source}`,
+    images: [observation.image],
+  };
 }
 
 const MAX_LENGTH_TRUNCATE_CONTENT = 10000;

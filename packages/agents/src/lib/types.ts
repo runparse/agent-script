@@ -49,6 +49,23 @@ export interface IMemoryStep {
   }): IChatMessage[];
 }
 
+export interface IObservationMetadata {
+  context?: string;
+  source?: string;
+}
+
+export interface IObservationText extends IObservationMetadata {
+  type: 'text';
+  text: string;
+}
+
+export interface IObservationImage extends IObservationMetadata {
+  type: 'image';
+  image: string;
+}
+
+export type Observation = IObservationText | IObservationImage;
+
 export interface IActionStep extends IMemoryStep {
   modelInputMessages?: IChatMessage[];
   startTime?: number;
@@ -58,8 +75,7 @@ export interface IActionStep extends IMemoryStep {
   duration?: number;
   modelOutputMessage?: IChatMessage;
   modelOutput?: string;
-  observations?: string;
-  observationsImages?: string[];
+  observations: Observation[];
   actionOutput?: any;
 }
 
@@ -73,7 +89,7 @@ export interface IPlanningStep extends IMemoryStep {
 
 export interface ITaskStep extends IMemoryStep {
   task: string;
-  taskImages: string[] | null;
+  observations: Observation[];
 }
 
 export interface ISystemPromptStep extends IMemoryStep {
@@ -168,6 +184,20 @@ export interface IUdf {
   ): Promise<Static<this['outputSchema']>> | Static<this['outputSchema']>;
 }
 
+export interface ICallableResult {
+  returnValue: unknown;
+  callable: string;
+}
+
+export interface ISandbox {
+  register(callable: string, fn: (...fnArgs: any[]) => Promise<any>): void;
+  executeScript(script: string): Promise<{
+    calls: ICallableResult[];
+    returnValue: any;
+    output: string;
+  }>;
+}
+
 export interface IAgent {
   name: string;
   description: string;
@@ -179,6 +209,7 @@ export interface IAgent {
 export interface ICodeAgent extends IAgent {
   memory: IAgentMemory;
   prompts: IAgentPrompt;
+  sandbox: ISandbox;
   udfs: IUdf[];
   managedAgents: IAgent[];
   stepNumber: number;
@@ -187,7 +218,7 @@ export interface ICodeAgent extends IAgent {
   afterStep(): Promise<void>;
   run: (
     task: string,
-    { images, additionalData }: { images?: string[]; additionalData?: any },
+    { observations }: { observations?: Observation[] },
   ) => Promise<Static<this['outputSchema']>>;
   model: IChatModel;
   planningInterval?: number;

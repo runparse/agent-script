@@ -70,7 +70,7 @@ export class AgentsInstrumentation extends InstrumentationBase<InstrumentationCo
                 span.setStatus({ code: SpanStatusCode.OK });
                 span.setAttribute(
                   SemanticConventions.OUTPUT_VALUE,
-                  memoryStep.observations || 'No observations',
+                  JSON.stringify(memoryStep.observations || 'No observations'),
                 );
                 return result;
               } catch (error: any) {

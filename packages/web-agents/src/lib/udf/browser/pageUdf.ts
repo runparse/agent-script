@@ -28,23 +28,13 @@ export abstract class PageActionUdf extends PageUdf {
     if (!(currentStep instanceof ActionStep)) return;
 
     // Take screenshot
-    const { data: screenshotData, metadata } = await getBase64Screenshot(
-      agent.page,
-    );
-
-    console.log(
-      `Captured browser screenshot: ${metadata.width}x${
-        metadata.height
-      } pixels. Source: ${agent.page.url()}. Step: ${currentStep.stepNumber}`,
-    );
+    const { data: screenshotData } = await getBase64Screenshot(agent.page);
 
     // Save screenshot to current step
-    currentStep.observationsImages = [screenshotData];
-
-    // Update step observations with current URL
-    const urlInfo = `Current url: ${agent.page.url()}`;
-    currentStep.observations = currentStep.observations
-      ? `${currentStep.observations}\n${urlInfo}`
-      : urlInfo;
+    currentStep.observations.push({
+      type: 'image',
+      image: screenshotData,
+      context: `screenshot after navigation to ${agent.page.url()}`,
+    });
   }
 }

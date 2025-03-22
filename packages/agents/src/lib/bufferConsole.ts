@@ -1,7 +1,7 @@
 import { Console } from 'console';
 import { Writable } from 'stream';
 
-export class BufferedConsole {
+export class BufferConsole {
   private buffer: string[] = [];
   private stream: Writable;
   private console: Console;
