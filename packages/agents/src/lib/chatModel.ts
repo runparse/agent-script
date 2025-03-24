@@ -1,7 +1,9 @@
-import { ChatCompletionMessageParam, TokenJS } from 'token.js';
-import { CompletionNonStreaming, LLMProvider } from 'token.js/dist/chat';
+import { ChatCompletionMessageParam, TokenJS, models } from 'token.js';
 import { IChatMessage, IChatModel, IChatResponseMetadata } from './types';
 import { ChatCompletionError } from './errors';
+import { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
+
+export type LLMProvider = keyof typeof models;
 
 export class ChatModel implements IChatModel {
   private client: TokenJS = new TokenJS();
@@ -10,16 +12,16 @@ export class ChatModel implements IChatModel {
     public options: {
       provider: LLMProvider;
       model: string;
-    } & Partial<CompletionNonStreaming<LLMProvider>> = {
+    } & Partial<ChatCompletionCreateParamsNonStreaming> = {
       provider: 'openai',
       model: 'gpt-4o',
     },
   ) {}
 
-  async chatCompletion<P extends LLMProvider>(
+  async chatCompletion(
     request: {
       messages: ChatCompletionMessageParam[];
-    } & Partial<CompletionNonStreaming<P>>,
+    } & Partial<ChatCompletionCreateParamsNonStreaming>,
   ): Promise<{
     message: IChatMessage;
     metadata: IChatResponseMetadata;
@@ -49,10 +51,10 @@ export class ChatModel implements IChatModel {
     };
   }
 
-  async chatCompletionWithSchema<P extends LLMProvider>(
+  async chatCompletionWithSchema(
     request: {
       messages: ChatCompletionMessageParam[];
-    } & Partial<CompletionNonStreaming<P>>,
+    } & Partial<ChatCompletionCreateParamsNonStreaming>,
   ): Promise<{
     message: IChatMessage;
     metadata: IChatResponseMetadata;

@@ -1,7 +1,7 @@
 import { SemanticConventions } from '@arizeai/openinference-semantic-conventions';
 import { Attributes } from '@opentelemetry/api';
-import { ChatCompletionMessageParam } from 'token.js';
-import { CompletionNonStreaming } from 'token.js/dist/chat';
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 
 export function transformChatRequestMessages(
   messages: ChatCompletionMessageParam[],
@@ -36,17 +36,21 @@ export function transformChatRequestMessages(
 }
 
 export function getLLMInputMessagesAttributes(
-  body: CompletionNonStreaming<any>,
+  body: ChatCompletionCreateParamsNonStreaming,
 ): Attributes {
-  return body.messages.reduce((acc, message, index) => {
-    const messageAttributes = getChatCompletionInputMessageAttributes(message);
-    const indexPrefix = `${SemanticConventions.LLM_INPUT_MESSAGES}.${index}.`;
-    // Flatten the attributes on the index prefix
-    for (const [key, value] of Object.entries(messageAttributes)) {
-      acc[`${indexPrefix}${key}`] = value;
-    }
-    return acc;
-  }, {} as Attributes);
+  return body.messages.reduce(
+    (acc: Attributes, message: ChatCompletionMessageParam, index: number) => {
+      const messageAttributes =
+        getChatCompletionInputMessageAttributes(message);
+      const indexPrefix = `${SemanticConventions.LLM_INPUT_MESSAGES}.${index}.`;
+      // Flatten the attributes on the index prefix
+      for (const [key, value] of Object.entries(messageAttributes)) {
+        acc[`${indexPrefix}${key}`] = value;
+      }
+      return acc;
+    },
+    {} as Attributes,
+  );
 }
 
 function getChatCompletionInputMessageAttributes(

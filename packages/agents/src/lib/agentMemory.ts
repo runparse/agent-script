@@ -8,8 +8,8 @@ import {
   ITaskStep,
   IAgentError,
   Observation,
+  IAgentMemory,
 } from './types';
-import { IAgentMemory as IAgentMemory } from './types';
 import { observationToChatMessage } from './utils';
 
 export class ActionStep implements IActionStep {

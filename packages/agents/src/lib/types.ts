@@ -1,6 +1,6 @@
 import { Static, TSchema } from '@sinclair/typebox';
-import { CompletionNonStreaming, LLMProvider } from 'token.js/dist/chat';
 import { ChatCompletionMessageParam } from 'token.js';
+import { ChatCompletionCreateParamsNonStreaming } from 'openai/resources';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -122,18 +122,18 @@ export interface IChatResponseMetadata {
 }
 
 export interface IChatModel {
-  chatCompletion<P extends LLMProvider>(
+  chatCompletion(
     request: {
       messages: ChatCompletionMessageParam[];
-    } & Partial<CompletionNonStreaming<P>>,
+    } & Partial<ChatCompletionCreateParamsNonStreaming>,
   ): Promise<{
     message: IChatMessage;
     metadata: IChatResponseMetadata;
   }>;
-  chatCompletionWithSchema<P extends LLMProvider>(
+  chatCompletionWithSchema(
     request: {
       messages: ChatCompletionMessageParam[];
-    } & Partial<CompletionNonStreaming<P>>,
+    } & Partial<ChatCompletionCreateParamsNonStreaming>,
   ): Promise<{
     message: IChatMessage;
     metadata: IChatResponseMetadata;

@@ -22,6 +22,27 @@
         "commands": ["pnpm version patch --no-git-tag-version --no-workspaces"],
         "cwd": "packages/code-agents-instrumentation"
       }
+    },
+    "build:package": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm run build"],
+        "cwd": "packages/code-agents-instrumentation"
+      },
+      "dependsOn": [
+        {
+          "target": "build:package",
+          "projects": ["agents"]
+        }
+      ]
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["npm publish"],
+        "cwd": "packages/code-agents-instrumentation",
+        "parallel": false
+      }
     }
   }
 }

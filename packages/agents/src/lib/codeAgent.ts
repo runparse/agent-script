@@ -25,7 +25,7 @@ import {
   LogLevel,
   Observation,
 } from './types';
-import { CallAgentUdf, FinalAnswerUdf, TerminateUdf } from './udf';
+import { CallAgentUdf, FinalAnswerUdf, TerminateUdf } from './udf/index';
 import {
   toChatCompletionMessageParam,
   truncateContent,

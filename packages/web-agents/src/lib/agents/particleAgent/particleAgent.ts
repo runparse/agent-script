@@ -1,24 +1,26 @@
-import { Page } from 'playwright';
-import { PageExtractDataUdf } from '../../udf/browser/pageExtractDataUdf';
-import { PageClickUdf } from '../../udf/browser/pageClickUdf';
-import { PageNavigateUrlUdf } from '../../udf/browser/pageNavigateUrlUdf';
 import {
-  IChatMessage,
   ActionStep,
-  DatasheetWriteUdf,
-  PartialBy,
-  ICodeAgentProps,
-  CodeAgent,
   BingSearchUdf,
+  CodeAgent,
+  DatasheetWriteUdf,
+  IChatMessage,
+  ICodeAgentProps,
+  IUdf,
+  PartialBy,
   TerminateUdf,
   ThinkUdf,
-  IUdf,
 } from '@runparse/agents';
 import { Static, TSchema, Type } from '@sinclair/typebox';
+import { Page } from 'playwright';
 import { IParticleAgentNavigationHistoryItem } from '../../types';
-import { particleAgentPrompt } from './particleAgent.prompt';
-import { PageGoBackUdf } from '../../udf/browser/pageGoBack';
+import {
+  PageClickUdf,
+  PageExtractDataUdf,
+  PageGoBackUdf,
+  PageNavigateUrlUdf,
+} from '../../udf/browser/index';
 import { generateDefaultJsonSchemaInstance } from '../../utils/schema';
+import { particleAgentPrompt } from './particleAgent.prompt';
 
 export const ParticleAgentDefaultUdfs = [
   new PageClickUdf(),

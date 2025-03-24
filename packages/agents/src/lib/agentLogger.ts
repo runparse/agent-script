@@ -1,5 +1,5 @@
 import { Console } from 'console';
-import { IChatMessage, IAgentLogger as IAgentLogger, LogLevel } from './types';
+import { IChatMessage, IAgentLogger, LogLevel } from './types';
 
 export class AgentLogger implements IAgentLogger {
   level: LogLevel;

@@ -3,15 +3,12 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "postinstall": "pnpm nx run-many --target=build --all"
+    "postinstall": "pnpm nx run-many --target=build:package --all"
   },
   "private": true,
   "workspaces": [
     "packages/*"
   ],
-  "dependencies": {
-    "token.js": "0.5.4"
-  },
   "devDependencies": {
     "@nx/jest": "^20.5.0",
     "@nx/js": "20.5.0",
@@ -28,7 +25,6 @@
     "prettier": "^2.6.2",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
-    "tslib": "^2.3.0",
     "typescript": "~5.7.2"
   }
 }

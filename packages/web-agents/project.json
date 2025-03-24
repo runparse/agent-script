@@ -22,6 +22,27 @@
         "cwd": "packages/web-agents"
       }
     },
+    "build:package": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm run build"],
+        "cwd": "packages/web-agents"
+      },
+      "dependsOn": [
+        {
+          "target": "build:package",
+          "projects": ["agents", "code-agents-instrumentation"]
+        }
+      ]
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["npm publish"],
+        "cwd": "packages/web-agents",
+        "parallel": false
+      }
+    },
     "cli": {
       "executor": "nx:run-commands",
       "options": {

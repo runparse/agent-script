@@ -2,12 +2,11 @@ import { Type, TSchema, Static } from '@sinclair/typebox';
 import { PageUdf } from './pageUdf';
 import { IChatModel, typeboxToTsString } from '@runparse/agents';
 import TurndownService from 'turndown';
-import { CompletionNonStreaming, LLMProvider } from 'token.js/dist/chat';
 import { IParticleAgent } from '../../types';
 import { ChatModel } from '@runparse/agents';
 import { Parser } from 'htmlparser2';
 import { getBase64Screenshot } from './utils';
-
+import { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 export class PageExtractDataUdf extends PageUdf {
   name = 'pageExtractData';
   description =
@@ -103,7 +102,7 @@ function getDataExtractionPrompt(
   screenshotBase64: string | undefined,
   schema: TSchema,
   instructions: string,
-): CompletionNonStreaming<LLMProvider> {
+): ChatCompletionCreateParamsNonStreaming {
   const messages = [
     {
       role: 'system',

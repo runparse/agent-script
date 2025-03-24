@@ -25,13 +25,6 @@
     "target": "es2022",
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
-    "paths": {
-      "@runparse/agents": ["packages/agents/src/index.ts"],
-      "@runparse/code-agents-instrumentation": [
-        "packages/code-agents-instrumentation/src/index.ts"
-      ],
-      "@runparse/web-agents": ["packages/web-agents/src/index.ts"]
-    }
   },
   "include": ["packages/**/*.ts", "scripts/**/*.ts"]
 }

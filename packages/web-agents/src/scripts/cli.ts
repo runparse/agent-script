@@ -2,7 +2,7 @@
 import { setup } from '@runparse/code-agents-instrumentation';
 import { Option, program } from 'commander';
 import playwright from 'playwright';
-import { ParticleAgent } from '../lib/agents/particleAgent';
+import { ParticleAgent } from '../lib/agents/particleAgent/index';
 import { createTSchemaFromInstance } from '../lib/utils/schema';
 import { ChatModel, CodeAgent, FinalAnswerUdf } from '@runparse/agents';
 setup();

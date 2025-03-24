@@ -22,6 +22,21 @@
         "cwd": "packages/agents"
       }
     },
+    "build:package": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm run build"],
+        "cwd": "packages/agents"
+      }
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["npm publish"],
+        "cwd": "packages/agents",
+        "parallel": false
+      }
+    },
     "cli": {
       "executor": "nx:run-commands",
       "options": {

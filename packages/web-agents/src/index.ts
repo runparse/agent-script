@@ -1,4 +1,4 @@
 export * from './lib/types';
-export * from './lib/udf';
-export * from './lib/agents/particleAgent';
-export * from './lib/utils';
+export * from './lib/udf/index';
+export * from './lib/agents/particleAgent/index';
+export * from './lib/utils/index';

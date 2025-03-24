@@ -18,7 +18,7 @@ import {
   ActionStep,
   IChatResponseMetadata,
 } from '@runparse/agents';
-import { CompletionNonStreaming } from 'token.js/dist/chat';
+import { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 import { getLLMInputMessagesAttributes } from './utils';
 
 import { OITracer, TraceConfigOptions } from '@arizeai/openinference-core';
@@ -226,7 +226,7 @@ export class AgentsInstrumentation extends InstrumentationBase<InstrumentationCo
       (original) =>
         async function patchedChatCompletion(
           this: ChatModel,
-          request: CompletionNonStreaming<any>,
+          request: ChatCompletionCreateParamsNonStreaming,
         ) {
           const attributes = getLLMInputMessagesAttributes(request);
           const { messages: _messages, ...invocationParameters } = request;
