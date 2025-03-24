@@ -6,33 +6,18 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
+      "executor": "nx:run-commands",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/agents/dist",
-        "main": "packages/agents/src/index.ts",
-        "tsConfig": "packages/agents/tsconfig.lib.json",
-        "assets": ["packages/agents/*.md"]
-      }
-    },
-    "postBuild": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": ["pnpm version patch --no-git-tag-version --no-workspaces"],
-        "cwd": "packages/agents"
-      }
-    },
-    "build:package": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": ["pnpm run build"],
-        "cwd": "packages/agents"
+        "commands": ["rm -rf dist", "rollup -c rollup.config.js"],
+        "cwd": "packages/agents",
+        "parallel": false
       }
     },
     "publish": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["npm publish"],
+        "commands": ["pnpm publish"],
         "cwd": "packages/agents",
         "parallel": false
       }

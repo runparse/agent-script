@@ -7,31 +7,16 @@
   "// targets": "to see all targets run: nx show project code-agents-instrumentation --web",
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
-      "options": {
-        "outputPath": "packages/code-agents-instrumentation/dist",
-        "main": "packages/code-agents-instrumentation/src/index.ts",
-        "tsConfig": "packages/code-agents-instrumentation/tsconfig.lib.json",
-        "assets": ["packages/code-agents-instrumentation/*.md"]
-      },
-      "dependsOn": ["^build"]
-    },
-    "postBuild": {
       "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
       "options": {
-        "commands": ["pnpm version patch --no-git-tag-version --no-workspaces"],
-        "cwd": "packages/code-agents-instrumentation"
-      }
-    },
-    "build:package": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": ["pnpm run build"],
-        "cwd": "packages/code-agents-instrumentation"
+        "commands": ["rm -rf dist", "rollup -c rollup.config.js"],
+        "cwd": "packages/code-agents-instrumentation",
+        "parallel": false
       },
       "dependsOn": [
         {
-          "target": "build:package",
+          "target": "build",
           "projects": ["agents"]
         }
       ]
@@ -39,7 +24,7 @@
     "publish": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["npm publish"],
+        "commands": ["pnpm publish"],
         "cwd": "packages/code-agents-instrumentation",
         "parallel": false
       }

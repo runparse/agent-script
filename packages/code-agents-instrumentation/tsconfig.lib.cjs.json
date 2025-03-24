@@ -7,7 +7,6 @@
     "declarationMap": true,
     "sourceMap": true,
     "inlineSources": true,
-    "module": "commonjs",
     "moduleResolution": "Node"
   },
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
