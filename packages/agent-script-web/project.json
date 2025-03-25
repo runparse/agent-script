@@ -1,0 +1,40 @@
+{
+  "name": "agent-script-web",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/agent-script-web/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": ["rm -rf dist", "rollup -c rollup.config.js"],
+        "cwd": "packages/agent-script-web",
+        "parallel": false
+      },
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["agent-script", "agent-script-instrumentation"]
+        }
+      ]
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm publish"],
+        "cwd": "packages/agent-script-web",
+        "parallel": false
+      }
+    },
+    "cli": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "pnpm ts-node packages/agent-script-web/src/scripts/cli.ts"
+        ]
+      }
+    }
+  }
+}

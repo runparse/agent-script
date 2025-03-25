@@ -1,0 +1,32 @@
+{
+  "name": "agent-script",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/agent-script/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": ["rm -rf dist", "rollup -c rollup.config.js"],
+        "cwd": "packages/agent-script",
+        "parallel": false
+      }
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm publish"],
+        "cwd": "packages/agent-script",
+        "parallel": false
+      }
+    },
+    "cli": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm ts-node packages/agent-script/scripts/cli.ts"]
+      }
+    }
+  }
+}

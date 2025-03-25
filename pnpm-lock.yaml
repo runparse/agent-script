@@ -63,7 +63,7 @@ importers:
         specifier: ~5.7.2
         version: 5.7.3
 
-  packages/agents:
+  packages/agent-script:
     dependencies:
       '@sinclair/typebox':
         specifier: '>=0.34.28'
@@ -91,7 +91,7 @@ importers:
         specifier: 3.2.6
         version: 3.2.6
 
-  packages/code-agents-instrumentation:
+  packages/agent-script-instrumentation:
     dependencies:
       '@arizeai/openinference-core':
         specifier: 1.0.0
@@ -114,9 +114,9 @@ importers:
       '@opentelemetry/sdk-trace-node':
         specifier: 1.30.1
         version: 1.30.1(@opentelemetry/api@1.9.0)
-      '@runparse/agents':
+      '@runparse/agent-script':
         specifier: workspace:*
-        version: link:../agents
+        version: link:../agent-script
       openai:
         specifier: ^4.52.2
         version: 4.52.2
@@ -124,14 +124,14 @@ importers:
         specifier: 2.8.1
         version: 2.8.1
 
-  packages/web-agents:
+  packages/agent-script-web:
     dependencies:
-      '@runparse/agents':
+      '@runparse/agent-script':
         specifier: workspace:*
-        version: link:../agents
-      '@runparse/code-agents-instrumentation':
+        version: link:../agent-script
+      '@runparse/agent-script-instrumentation':
         specifier: workspace:*
-        version: link:../code-agents-instrumentation
+        version: link:../agent-script-instrumentation
       '@sinclair/typebox':
         specifier: '>=0.34.28'
         version: 0.34.28

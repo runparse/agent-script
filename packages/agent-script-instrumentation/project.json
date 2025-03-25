@@ -1,0 +1,32 @@
+{
+  "name": "agent-script-instrumentation",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/agent-script-instrumentation/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "commands": ["rm -rf dist", "rollup -c rollup.config.js"],
+        "cwd": "packages/agent-script-instrumentation",
+        "parallel": false
+      },
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["agent-script"]
+        }
+      ]
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["pnpm publish"],
+        "cwd": "packages/agent-script-instrumentation",
+        "parallel": false
+      }
+    }
+  }
+}

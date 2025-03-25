@@ -1,9 +1,9 @@
 {
-  "name": "@runparse/code-agents-all",
+  "name": "@runparse/agent-script-all",
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "postinstall": "pnpm nx run-many --target=build:package --all"
+    "postinstall": "pnpm nx run-many --target=build --all"
   },
   "private": true,
   "workspaces": [
