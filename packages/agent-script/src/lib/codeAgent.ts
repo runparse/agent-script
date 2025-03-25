@@ -33,7 +33,6 @@ import {
 } from './utils';
 
 export interface ICodeAgentProps {
-  task: string;
   name: string;
   description: string;
   udfs: IUdf[];
@@ -72,7 +71,7 @@ export class CodeAgent implements ICodeAgent {
   protected shouldRunPlanning: boolean;
 
   constructor(props: ICodeAgentProps) {
-    this.task = props.task;
+    this.task = '';
     this.name = props.name;
     this.description = props.description;
     this.udfs = props.udfs;
@@ -212,8 +211,9 @@ export class CodeAgent implements ICodeAgent {
 
   async run(
     task: string,
-    { observations }: { observations?: Observation[] },
+    options?: { observations?: Observation[] },
   ): Promise<Static<this['outputSchema']>> {
+    const observations = options?.observations;
     let finalAnswer: Static<this['outputSchema']> | undefined = undefined;
     this.task = task;
     this.stepNumber = 1;

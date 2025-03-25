@@ -218,7 +218,7 @@ export interface ICodeAgent extends IAgent {
   afterStep(): Promise<void>;
   run: (
     task: string,
-    { observations }: { observations?: Observation[] },
+    options?: { observations?: Observation[] },
   ) => Promise<Static<this['outputSchema']>>;
   model: IChatModel;
   planningInterval?: number;

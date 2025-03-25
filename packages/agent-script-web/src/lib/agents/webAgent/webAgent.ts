@@ -35,7 +35,6 @@ export const WebAgentDefaultUdfs = [
 export interface IWebAgentProps
   extends Omit<PartialBy<ICodeAgentProps, 'description' | 'prompts'>, 'udfs'> {
   page: Page;
-  instructions: string;
   navigationHistory?: IWebAgentNavigationHistoryItem[];
   dataObjectSchema: TSchema;
   udfs?: IUdf[];
@@ -43,7 +42,6 @@ export interface IWebAgentProps
 
 export class WebAgent extends CodeAgent {
   page: Page;
-  instructions: string;
   navigationHistory: IWebAgentNavigationHistoryItem[];
 
   override udfs: IUdf[];
@@ -69,11 +67,10 @@ export class WebAgent extends CodeAgent {
         props.description ||
         `You object is to collect data as JSON objects with the following structure:\n\n${JSON.stringify(
           generateDefaultJsonSchemaInstance(props.dataObjectSchema),
-        )} using the 'datasheetWrite' UDF to save any relevant data after extracting data from a webpage or searching the web. Visit every link from the results after doing a web search. Use the provided page UDFs to explore the webpage and extract data following user instructions. Navigate away from the page if you see a captcha.`,
+        )} using the 'datasheetWrite' UDF to save any relevant data after extracting data from a webpage or searching the web. Use the provided page UDFs to explore the webpage and extract data following user instructions. Navigate away from the page if you see a captcha.`,
     });
 
     this.page = props.page;
-    this.instructions = props.instructions;
 
     this.udfs = udfs;
 

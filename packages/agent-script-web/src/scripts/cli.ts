@@ -14,11 +14,6 @@ program
     new Option('--task <task>', 'The task to run').makeOptionMandatory(),
   )
   .addOption(
-    new Option('--instructions <instructions>', 'Query instructions').default(
-      'test',
-    ),
-  )
-  .addOption(
     new Option(
       '--schema <schema>',
       'JSON schema for the output',
@@ -33,12 +28,10 @@ program
 
     try {
       const agent = new WebAgent({
-        task: options.task,
         name: 'Web Agent',
         description: '',
         maxSteps: 10,
         page: page,
-        instructions: options.instructions,
         dataObjectSchema: schema,
         shouldRunPlanning: true,
         model: new ChatModel({
@@ -51,7 +44,7 @@ program
       //   agent.updateShouldRunPlanning(true);
       // }, 1000);
 
-      const result = await agent.run(options.task, {});
+      const result = await agent.run(options.task);
 
       console.log(JSON.stringify(result, undefined, 2));
     } catch (error) {
@@ -65,11 +58,6 @@ program
   .description('Run the code agent manager')
   .addOption(
     new Option('--task <task>', 'The task to run').makeOptionMandatory(),
-  )
-  .addOption(
-    new Option('--instructions <instructions>', 'Query instructions').default(
-      'test',
-    ),
   )
   .addOption(
     new Option(
@@ -86,18 +74,15 @@ program
 
     try {
       const webAgent = new WebAgent({
-        task: options.task,
         name: 'Web Agent',
         description: '',
         maxSteps: 10,
         page: page,
-        instructions: options.instructions,
         dataObjectSchema: schema,
         shouldRunPlanning: false,
       });
 
       const agent = new CodeAgent({
-        task: options.task,
         name: 'Test Code Agent',
         description: '',
         udfs: [new FinalAnswerUdf()],
@@ -109,7 +94,7 @@ program
       //   agent.updateShouldRunPlanning(true);
       // }, 1000);
 
-      const result = await agent.run(options.task, {});
+      const result = await agent.run(options.task);
 
       console.log(JSON.stringify(result, undefined, 2));
     } catch (error) {
