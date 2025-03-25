@@ -1,5 +1,12 @@
 // rollup.config.js
 import typescript from '@rollup/plugin-typescript';
+import { builtinModules } from 'module';
+
+const external = (id) => {
+  const isExternal = builtinModules.includes(id) || /^[a-z@][^:]/.test(id);
+  if (isExternal) console.log('External:', id);
+  return isExternal;
+};
 
 export default [
   // ESM build using tsconfig.lib.json
@@ -9,16 +16,13 @@ export default [
       file: 'dist/esm/index.js',
       format: 'esm',
       sourcemap: true,
-      type: 'module',
     },
     plugins: [
       typescript({
         tsconfig: './tsconfig.lib.json',
       }),
     ],
-    external: [
-      /* list external dependencies to exclude from bundle */
-    ],
+    external,
   },
   // CommonJS build using tsconfig.lib.cjs.json
   {
@@ -33,8 +37,6 @@ export default [
         tsconfig: './tsconfig.lib.cjs.json',
       }),
     ],
-    external: [
-      /* list external dependencies to exclude from bundle */
-    ],
+    external,
   },
 ];
