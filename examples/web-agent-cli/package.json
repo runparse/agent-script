@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@runparse/agent-script": "^0.0.1-alpha.2",
+    "@runparse/agent-script-instrumentation": "^0.0.1-alpha.2",
+    "@runparse/agent-script-web": "^0.0.1-alpha.2",
+    "playwright": "1.50.0"
+  },
+  "devDependencies": {
+    "tsx": "4.19.3"
+  }
+}
