@@ -1,12 +1,14 @@
 # AgentScript
 
-AgentScript is a simple, observable code agent builder written in TypeScript, inspired by [smolagents](https://github.com/huggingface/smolagents). We built AgentScript to enable more production-grade agentic use cases, and share some smol examples (math agent, web-answers, web-navigation, deep research). Let’s build something awesome! 😊
-
 ## Demo
 
 [1 video]
 
-## What Is It
+## What Is AgentScript
+
+AgentScript is a simple, observable code agent builder written in TypeScript, inspired by [smolagents](https://github.com/huggingface/smolagents). We built AgentScript to enable more production-grade agentic use cases, and share some smol examples (math agent, web-answers, web-navigation, deep research). Let’s build something awesome! 😊
+
+## How It Works
 
 AgentScript provides an agent loop scaffold that breaks down a task into multiple steps. In each step, the agent uses its memory on previous steps, and
 
@@ -23,7 +25,7 @@ The Agent will keep taking steps towards the goal of the task and terminate when
 ### Main Features
 
 - A simple, customizable agent loop that enables scalable agentic workflow execution.
-- No-code OpenTelemetry instrumentation. Full task / step tracing & token usage statistics.
+- No-code OpenTelemetry instrumentation. Full task / step tracing & token usage statistics. (See demo video)
 - UDFs for web browser actions (visual) + web automation agent sample.
 
 ## Quick Start

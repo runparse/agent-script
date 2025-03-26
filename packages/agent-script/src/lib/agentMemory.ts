@@ -234,10 +234,6 @@ export class AgentMemory implements IAgentMemory {
     );
   }
 
-  getFullSteps(): Record<string, any>[] {
-    return this.steps.map((step) => step);
-  }
-
   replay(logger: AgentLogger, detailed = false) {
     logger.console.log("Replaying the agent's steps:");
 

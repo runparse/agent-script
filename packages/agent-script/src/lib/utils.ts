@@ -40,7 +40,7 @@ export function observationToChatMessage(
   if (observation.type === 'text') {
     return {
       role: 'user',
-      content: `Observation:${observation.text}${context}${source}`,
+      content: `Observation:\n${observation.text}${context}${source}`,
     };
   }
   return {
@@ -90,7 +90,7 @@ export function removeLeadingIndentation(
     .join('\n');
 }
 
-export function typeboxToTsString(schema: TSchema): string {
+export function schemaToTypeString(schema: TSchema): string {
   // Handle literal types (if a constant is provided)
   if ('const' in schema) {
     return JSON.stringify((schema as any).const);
@@ -102,7 +102,7 @@ export function typeboxToTsString(schema: TSchema): string {
     const lines = Object.entries(objSchema.properties).map(([key, value]) => {
       // Check if the property is optional.
       const isOptional = !objSchema.required?.includes(key);
-      return `${key}${isOptional ? '?' : ''}: ${typeboxToTsString(value)}`;
+      return `${key}${isOptional ? '?' : ''}: ${schemaToTypeString(value)}`;
     });
     return `{\n  ${lines.join('\n  ')}\n}`;
   }
@@ -110,7 +110,7 @@ export function typeboxToTsString(schema: TSchema): string {
   // Handle arrays recursively
   if (schema.type === 'array') {
     const arraySchema = schema as any;
-    return `Array<${typeboxToTsString(arraySchema.items)}>`;
+    return `Array<${schemaToTypeString(arraySchema.items)}>`;
   }
 
   const descriptionComment = schema.description

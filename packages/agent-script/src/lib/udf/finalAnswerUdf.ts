@@ -1,14 +1,14 @@
 import { ICodeAgent } from '../types';
-import { typeboxToTsString } from '../utils';
-import { BaseUdf } from './baseUdf';
+import { schemaToTypeString } from '../utils';
+import { BaseStoppingUdf } from './baseStoppingUdf';
 import { Type, Static, TSchema } from '@sinclair/typebox';
 
-export class FinalAnswerUdf extends BaseUdf {
+export class FinalAnswerUdf extends BaseStoppingUdf {
   name = 'finalAnswer';
   description: string;
 
   inputSchema: TSchema = Type.Object({
-    answer: Type.String(),
+    answer: Type.String({ description: 'The final answer to the task.' }),
   });
   outputSchema: TSchema;
   output: any;
@@ -27,7 +27,7 @@ export class FinalAnswerUdf extends BaseUdf {
     this.outputSchema = this.inputSchema;
     this.description =
       description ||
-      `Provide the final answer in the following format: ${typeboxToTsString(
+      `Provide the final answer in the following format: ${schemaToTypeString(
         this.outputSchema,
       )}`;
   }

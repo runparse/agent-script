@@ -29,6 +29,7 @@ export class Sandbox {
     script: string,
   ): Promise<{ calls: ICallableResult[]; returnValue: any; output: string }> {
     const sandboxConsole = new BufferConsole();
+    this.vmContext.console = sandboxConsole;
     function trap(reason: any) {
       if (reason instanceof Error) {
         sandboxConsole.log(`UnhandledPromiseRejection: ${reason.message}`);
@@ -55,9 +56,13 @@ export class Sandbox {
         (key) => !existingVariables.has(key),
       );
 
-      sandboxConsole.log(
-        this.formatScriptCallResults(newVariables, currentScriptCalls),
+      const callResultsString = this.formatScriptCallResults(
+        newVariables,
+        currentScriptCalls,
       );
+      if (callResultsString) {
+        sandboxConsole.log(callResultsString);
+      }
 
       return {
         calls: currentScriptCalls,

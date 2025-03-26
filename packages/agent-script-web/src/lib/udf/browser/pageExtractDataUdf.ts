@@ -2,7 +2,7 @@ import { Type, TSchema, Static } from '@sinclair/typebox';
 import { PageUdf } from './pageUdf';
 import {
   IChatModel,
-  typeboxToTsString,
+  schemaToTypeString,
   ChatModel,
 } from '@runparse/agent-script';
 import TurndownService from 'turndown';
@@ -109,7 +109,7 @@ function getDataExtractionPrompt(
   const messages = [
     {
       role: 'system',
-      content: `You are a helpful assistant that can answer questions about a webpage. Use only the information provided in the html document. Return an empty type response if no relevant information is found. Here is the user's instruction: ${instructions}. Your output must be a valid JSON object that matches the typescript type ${typeboxToTsString(
+      content: `You are a helpful assistant that can answer questions about a webpage. Use only the information provided in the html document. Return an empty type response if no relevant information is found. Here is the user's instruction: ${instructions}. Your output must be a valid JSON object that matches the typescript type ${schemaToTypeString(
         schema.properties.data,
       )}.`,
     },

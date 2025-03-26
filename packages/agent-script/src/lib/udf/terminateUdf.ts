@@ -1,8 +1,8 @@
 import { ICodeAgent } from '../types';
-import { BaseUdf } from './baseUdf';
 import { Type, Static } from '@sinclair/typebox';
+import { BaseStoppingUdf } from './baseStoppingUdf';
 
-export class TerminateUdf extends BaseUdf {
+export class TerminateUdf extends BaseStoppingUdf {
   name = 'terminate';
   description = 'Terminate the agent.';
 

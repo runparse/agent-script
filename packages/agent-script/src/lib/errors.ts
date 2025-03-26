@@ -24,11 +24,10 @@ export enum AgentErrorCode {
   PREMATURE_TERMINATE = 'PREMATURE_TERMINATE',
 }
 
-export class AgentError implements IAgentError {
-  public message: string;
+export class AgentError extends Error implements IAgentError {
   public code: string;
   constructor({ message, code }: { message: string; code: string }) {
-    this.message = message;
+    super(message);
     this.code = code;
   }
 }

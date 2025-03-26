@@ -1,6 +1,6 @@
 import { ICodeAgent, IUdf } from '../types';
 import { Static, TSchema } from '@sinclair/typebox';
-import { typeboxToTsString } from '../utils';
+import { schemaToTypeString } from '../utils';
 
 export abstract class BaseUdf implements IUdf {
   abstract name: string;
@@ -11,8 +11,8 @@ export abstract class BaseUdf implements IUdf {
   getSignature(): string {
     return `// ${this.description}\nasync function ${
       this.name
-    }(params: ${typeboxToTsString(this.inputSchema)}): Promise\<${
-      this.outputSchema ? typeboxToTsString(this.outputSchema) : 'any'
+    }(params: ${schemaToTypeString(this.inputSchema)}): Promise\<${
+      this.outputSchema ? schemaToTypeString(this.outputSchema) : 'any'
     }\>`;
   }
 

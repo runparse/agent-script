@@ -34,8 +34,7 @@ export interface IChatMessage {
   };
 }
 
-export interface IAgentError {
-  message: string;
+export interface IAgentError extends Error {
   code: string;
 }
 
@@ -109,7 +108,6 @@ export interface IAgentMemory {
 
   reset(): void;
   getSuccinctSteps(): IChatMessage[];
-  getFullSteps(): Record<string, any>[];
   replay(logger: IAgentLogger, detailed?: boolean): void;
 }
 
@@ -223,6 +221,5 @@ export interface ICodeAgent extends IAgent {
   model: IChatModel;
   planningInterval?: number;
   updateShouldRunPlanning(override?: boolean): void;
-  maxMemoryTokenCount: number;
   logger: IAgentLogger;
 }

@@ -25,22 +25,22 @@ import {
   LogLevel,
   Observation,
 } from './types';
-import { CallAgentUdf, FinalAnswerUdf, TerminateUdf } from './udf/index';
+import { CallAgentUdf } from './udf/index';
 import {
   toChatCompletionMessageParam,
   truncateContent,
   walkTypeboxSchema,
 } from './utils';
+import { BaseStoppingUdf } from './udf/baseStoppingUdf';
 
 export interface ICodeAgentProps {
   name: string;
   description: string;
   udfs: IUdf[];
   authorizedImports?: string[];
-  sandbox?: Sandbox;
+  sandbox?: ISandbox;
   prompts?: IAgentPrompt;
   maxSteps: number;
-  maxMemoryTokenCount?: number;
   model?: IChatModel;
   memory?: AgentMemory;
   managedAgents?: IAgent[];
@@ -62,7 +62,6 @@ export class CodeAgent implements ICodeAgent {
   memory: AgentMemory;
   outputSchema: TSchema;
   maxSteps: number;
-  maxMemoryTokenCount: number;
   managedAgents: IAgent[];
   stepNumber: number;
   planningInterval?: number;
@@ -75,14 +74,10 @@ export class CodeAgent implements ICodeAgent {
     this.name = props.name;
     this.description = props.description;
     this.udfs = props.udfs;
-    if (
-      !this.udfs.some(
-        (udf) => udf instanceof FinalAnswerUdf || udf instanceof TerminateUdf,
-      )
-    ) {
+    if (!this.udfs.some((udf) => udf instanceof BaseStoppingUdf)) {
       throw new AgentError({
         message:
-          'The CodeAgent requires the finalAnswer and terminate UDFs to be present in the udfs array.',
+          'The CodeAgent requires at least one stopping UDF (BaseStoppingUdf) to be present in the udfs list.',
         code: AgentErrorCode.UDF_NOT_FOUND,
       });
     }
@@ -105,7 +100,6 @@ export class CodeAgent implements ICodeAgent {
     });
     this.prompts = props.prompts || codeAgentPrompt;
     this.maxSteps = props.maxSteps;
-    this.maxMemoryTokenCount = props.maxMemoryTokenCount || 128 * 1000;
     this.model =
       props.model ||
       new ChatModel({
@@ -157,7 +151,7 @@ export class CodeAgent implements ICodeAgent {
     }
   }
 
-  protected writeMemoryToMessages(summaryMode = false): IChatMessage[] {
+  writeMemoryToMessages(summaryMode = false): IChatMessage[] {
     const messages = this.memory.systemPrompt.toMessages({
       summaryMode,
       showModelInputMessages: false,
@@ -175,7 +169,7 @@ export class CodeAgent implements ICodeAgent {
     return messages;
   }
 
-  async callUdf(udfName: string, input: TSchema): Promise<Static<TSchema>> {
+  async callUdf(udfName: string, input: any): Promise<Static<TSchema>> {
     const udf = this.udfs.find((t) => t.name === udfName) as IUdf;
 
     if (!udf) {
@@ -527,6 +521,9 @@ export class CodeAgent implements ICodeAgent {
         });
       }
     } catch (error: any) {
+      if (error instanceof AgentError) {
+        throw error;
+      }
       throw new AgentError({
         message: `Error generating model output: ${error.message}`,
         code: AgentErrorCode.MODEL_OUTPUT_ERROR,
