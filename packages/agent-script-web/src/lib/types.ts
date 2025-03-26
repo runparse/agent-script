@@ -21,7 +21,5 @@ export interface IPageUdf extends IUdf {
 
 export interface IWebAgent extends ICodeAgent {
   page: Page;
-  instructions: string;
   navigationHistory: IWebAgentNavigationHistoryItem[];
-  udfs: IPageUdf[];
 }

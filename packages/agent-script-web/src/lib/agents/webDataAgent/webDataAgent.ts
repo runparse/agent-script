@@ -12,7 +12,7 @@ import {
 } from '@runparse/agent-script';
 import { Static, TSchema, Type } from '@sinclair/typebox';
 import { Page } from 'playwright';
-import { IWebAgentNavigationHistoryItem } from '../../types';
+import { IWebAgent, IWebAgentNavigationHistoryItem } from '../../types';
 import {
   PageClickUdf,
   PageExtractDataUdf,
@@ -20,9 +20,9 @@ import {
   PageNavigateUrlUdf,
 } from '../../udf/browser/index';
 import { generateDefaultJsonSchemaInstance } from '../../utils/schema';
-import { webAgentPrompt } from './webAgent.prompt';
+import { webDataAgentPrompt } from './webDataAgent.prompt';
 
-export const WebAgentDefaultUdfs = [
+export const WebDataAgentDefaultUdfs = [
   new PageClickUdf(),
   new PageNavigateUrlUdf(),
   new PageGoBackUdf(),
@@ -32,7 +32,7 @@ export const WebAgentDefaultUdfs = [
   new ThinkUdf(),
 ] as readonly IUdf[];
 
-export interface IWebAgentProps
+export interface IWebDataAgentProps
   extends Omit<PartialBy<ICodeAgentProps, 'description' | 'prompts'>, 'udfs'> {
   page: Page;
   navigationHistory?: IWebAgentNavigationHistoryItem[];
@@ -40,14 +40,14 @@ export interface IWebAgentProps
   udfs?: IUdf[];
 }
 
-export class WebAgent extends CodeAgent {
+export class WebDataAgent extends CodeAgent implements IWebAgent {
   page: Page;
   navigationHistory: IWebAgentNavigationHistoryItem[];
 
   override udfs: IUdf[];
 
-  constructor(props: IWebAgentProps) {
-    const udfs: IUdf[] = props.udfs || [...WebAgentDefaultUdfs];
+  constructor(props: IWebDataAgentProps) {
+    const udfs: IUdf[] = props.udfs || [...WebDataAgentDefaultUdfs];
     udfs.push(
       new PageExtractDataUdf({
         model: props.model,
@@ -61,7 +61,7 @@ export class WebAgent extends CodeAgent {
 
     super({
       ...props,
-      prompts: props.prompts || webAgentPrompt,
+      prompts: props.prompts || webDataAgentPrompt,
       udfs,
       description:
         props.description ||

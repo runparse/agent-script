@@ -8,5 +8,4 @@ Run this example by
 
 ```
 OPENAI_API_KEY=
-BING_API_KEY=
 ```

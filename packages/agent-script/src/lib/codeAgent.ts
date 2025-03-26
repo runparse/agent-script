@@ -186,7 +186,6 @@ export class CodeAgent implements ICodeAgent {
     }
 
     try {
-      // Validate input against schema
       Value.Assert(udf.inputSchema, input);
       await udf.onBeforeCall(input, this);
       const output = await udf.call(input, this);
@@ -249,7 +248,6 @@ export class CodeAgent implements ICodeAgent {
 
       try {
         this.logger.logRule(`Step ${this.stepNumber}`, LogLevel.INFO);
-        // Run one step
         if (this.beforeStep) {
           await this.beforeStep();
         }
@@ -475,7 +473,6 @@ export class CodeAgent implements ICodeAgent {
     memoryStep.modelInputMessages = [...memoryMessages];
 
     try {
-      // Generate model output
       const { message: chatMessage } = await this.model.chatCompletion({
         messages: toChatCompletionMessageParam(memoryMessages),
         stop: ['<end_code>', 'Observation:'],

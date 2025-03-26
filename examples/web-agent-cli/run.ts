@@ -5,8 +5,8 @@ import {
 } from '@runparse/agent-script';
 import { setup } from '@runparse/agent-script-instrumentation';
 import {
-  WebAgent,
-  WebAgentDefaultUdfs,
+  WebDataAgent,
+  WebDataAgentDefaultUdfs,
   createTSchemaFromInstance,
 } from '@runparse/agent-script-web';
 import { chromium } from 'playwright';
@@ -24,7 +24,7 @@ async function main() {
     points: 0,
   });
 
-  const agent = new WebAgent({
+  const agent = new WebDataAgent({
     name: 'Web Agent',
     description: '',
     maxSteps: 10,
@@ -37,7 +37,9 @@ async function main() {
       max_tokens: 4096,
     }),
     udfs: [
-      ...WebAgentDefaultUdfs.filter((udf) => !(udf instanceof BingSearchUdf)),
+      ...WebDataAgentDefaultUdfs.filter(
+        (udf) => !(udf instanceof BingSearchUdf),
+      ),
       new DuckduckgoSearchUdf(),
     ],
   });

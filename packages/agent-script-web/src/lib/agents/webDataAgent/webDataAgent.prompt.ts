@@ -9,7 +9,7 @@ import {
   buildCodeAgentRulesPrompt,
 } from '@runparse/agent-script';
 
-export const webAgentExamples: ICodeAgentRunExample[] = [
+export const webDataAgentExamples: ICodeAgentRunExample[] = [
   {
     task: 'Generate an image of the oldest person in this document.',
     steps: [
@@ -86,12 +86,12 @@ export const webAgentExamples: ICodeAgentRunExample[] = [
   },
 ] as const;
 
-export const webAgentRules = [
+export const webDataAgentRules = [
   ...codeAgentRules,
   'CRITICAL: `await terminate` UDF must be the only UDF call in your last step.',
 ] as const;
 
-export const webAgentPrompt: IAgentPrompt = {
+export const webDataAgentPrompt: IAgentPrompt = {
   ...codeAgentPrompt,
   systemPrompt: `${codeAgentRolePromptPart}
 
@@ -99,7 +99,7 @@ In the end you have to call the \`await terminate\` UDF with the reason as the a
 
 Use the \`await think\` UDF to think about the task if you are stuck or not making progress according to the plan.
 
-${buildExamplesSectionPrompt(webAgentExamples)}
+${buildExamplesSectionPrompt(webDataAgentExamples)}
 
 Above examples were using notional UDFs that might not exist for you. On top of performing computations in the Javascript code snippets that you create, you only have access to these UDFs (in additional to any built-in functions):
 \`\`\`js
@@ -119,7 +119,7 @@ Here is a list of the team members that you can call:
 {%- else %}
 {%- endif %}
 
-${buildCodeAgentRulesPrompt(Array.from(webAgentRules))}
+${buildCodeAgentRulesPrompt(Array.from(webDataAgentRules))}
 
 {{ description | safe }}
 

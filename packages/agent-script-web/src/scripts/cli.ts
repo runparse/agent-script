@@ -2,7 +2,7 @@
 import { setup } from '@runparse/agent-script-instrumentation';
 import { Option, program } from 'commander';
 import playwright from 'playwright';
-import { WebAgent } from '../lib/agents/webAgent/index';
+import { WebDataAgent } from '../lib/agents/webDataAgent/index';
 import { createTSchemaFromInstance } from '../lib/utils/schema';
 import { ChatModel, CodeAgent, FinalAnswerUdf } from '@runparse/agent-script';
 setup();
@@ -27,7 +27,7 @@ program
     const schema = createTSchemaFromInstance(JSON.parse(options.schema));
 
     try {
-      const agent = new WebAgent({
+      const agent = new WebDataAgent({
         name: 'Web Agent',
         description: '',
         maxSteps: 10,
@@ -40,9 +40,6 @@ program
           max_tokens: 4096,
         }),
       });
-      // setTimeout(() => {
-      //   agent.updateShouldRunPlanning(true);
-      // }, 1000);
 
       const result = await agent.run(options.task);
 
@@ -73,7 +70,7 @@ program
     const schema = createTSchemaFromInstance(JSON.parse(options.schema));
 
     try {
-      const webAgent = new WebAgent({
+      const webDataAgent = new WebDataAgent({
         name: 'Web Agent',
         description: '',
         maxSteps: 10,
@@ -88,11 +85,8 @@ program
         udfs: [new FinalAnswerUdf()],
         maxSteps: 10,
         shouldRunPlanning: true,
-        managedAgents: [webAgent],
+        managedAgents: [webDataAgent],
       });
-      // setTimeout(() => {
-      //   agent.updateShouldRunPlanning(true);
-      // }, 1000);
 
       const result = await agent.run(options.task);
 
