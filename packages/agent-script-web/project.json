@@ -31,9 +31,7 @@
     "cli": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "pnpm ts-node packages/agent-script-web/src/scripts/cli.ts"
-        ]
+        "commands": ["pnpm tsx packages/agent-script-web/src/scripts/cli.ts"]
       }
     }
   }

@@ -24,7 +24,7 @@
     "nx": "20.5.0",
     "prettier": "^2.6.2",
     "ts-jest": "^29.1.0",
-    "ts-node": "10.9.1",
+    "tsx": "4.19.3",
     "typescript": "~5.7.2",
     "rollup": "4.37.0",
     "@rollup/plugin-typescript": "12.1.2"

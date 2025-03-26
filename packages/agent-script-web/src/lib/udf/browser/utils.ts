@@ -68,7 +68,7 @@ export const VisualQualityParams: Record<
     height: 512,
     quality: 70,
   },
-};
+} as const;
 
 export async function getBase64Screenshot(
   page: Page,

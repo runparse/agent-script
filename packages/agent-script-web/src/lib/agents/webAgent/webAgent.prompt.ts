@@ -84,12 +84,12 @@ export const webAgentExamples: ICodeAgentRunExample[] = [
       },
     ],
   },
-];
+] as const;
 
 export const webAgentRules = [
   ...codeAgentRules,
   'CRITICAL: `await terminate` UDF must be the only UDF call in your last step.',
-];
+] as const;
 
 export const webAgentPrompt: IAgentPrompt = {
   ...codeAgentPrompt,
@@ -119,7 +119,7 @@ Here is a list of the team members that you can call:
 {%- else %}
 {%- endif %}
 
-${buildCodeAgentRulesPrompt(webAgentRules)}
+${buildCodeAgentRulesPrompt(Array.from(webAgentRules))}
 
 {{ description | safe }}
 

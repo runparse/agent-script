@@ -48,7 +48,9 @@ ${buildExamplePrompt(example)}`,
 `;
 }
 
-export function buildCodeAgentRulesPrompt(rules: string[] = codeAgentRules) {
+export function buildCodeAgentRulesPrompt(
+  rules: readonly string[] = codeAgentRules,
+) {
   return `Here are the rules you should always follow to solve your task:
 ${rules.map((rule, index) => `${index + 1}. ${rule}\n`).join('')}`;
 }

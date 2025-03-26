@@ -69,7 +69,7 @@ export const codeAgentExamples: ICodeAgentRunExample[] = [
       },
     ],
   },
-];
+] as const;
 
 export const codeAgentPrompt: IAgentPrompt = {
   systemPrompt: `${codeAgentRolePromptPart}
@@ -236,4 +236,4 @@ Now write your new plan below.`,
     postMessages: `Based on the above, please provide an answer to the following user request:
 {{task}}`,
   },
-};
+} as const;

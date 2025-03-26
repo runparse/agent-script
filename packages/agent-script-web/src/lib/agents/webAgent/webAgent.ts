@@ -30,7 +30,7 @@ export const WebAgentDefaultUdfs = [
   new BingSearchUdf(),
   new TerminateUdf(),
   new ThinkUdf(),
-];
+] as readonly IUdf[];
 
 export interface IWebAgentProps
   extends Omit<PartialBy<ICodeAgentProps, 'description' | 'prompts'>, 'udfs'> {
@@ -47,7 +47,7 @@ export class WebAgent extends CodeAgent {
   override udfs: IUdf[];
 
   constructor(props: IWebAgentProps) {
-    let udfs: IUdf[] = props.udfs || WebAgentDefaultUdfs;
+    const udfs: IUdf[] = props.udfs || [...WebAgentDefaultUdfs];
     udfs.push(
       new PageExtractDataUdf({
         model: props.model,

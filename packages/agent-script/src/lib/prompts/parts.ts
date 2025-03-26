@@ -29,4 +29,4 @@ export const codeAgentRules = [
   `Always assign the result of UDF calls to a variable.`,
   `Write only one code block per step.`,
   `If there are UDF calls in the code block but you see no output from the calls, it means that the UDF call(s) failed. Check if you made an error in the UDF call(s).`,
-];
+] as const;
