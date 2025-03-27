@@ -1,4 +1,6 @@
-# Web Agent Cli
+# Web Data Agent Cli
+
+WebDataAgent is an agent that collects structured data from the internet through search and web page browsing.
 
 Run this example by
 

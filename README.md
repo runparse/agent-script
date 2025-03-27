@@ -35,7 +35,7 @@ The Agent will keep taking steps towards the goal of the task and terminate when
 ### Local Development
 
 1. `pnpm install`
-2. Install [Arize-ai/phoenix](https://github.com/Arize-ai/phoenix) for detailed tracing.
+2. Install [Arize-ai/phoenix](https://github.com/Arize-ai/phoenix) for detailed tracing. For fastest setup, use docker.
 3. Start with ready-to-run samples in the `examples` folder.
 
 Run tests with `pnpm nx run-many --target=test --all`
