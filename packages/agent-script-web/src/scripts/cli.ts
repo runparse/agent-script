@@ -2,10 +2,44 @@
 import { setup } from '@runparse/agent-script-instrumentation';
 import { Option, program } from 'commander';
 import playwright from 'playwright';
-import { WebDataAgent } from '../lib/agents/webDataAgent/index';
+import { WebDataAgent, DeepResearchAgent } from '../lib/agents/webAgents/index';
 import { createTSchemaFromInstance } from '../lib/utils/schema';
 import { ChatModel, CodeAgent, FinalAnswerUdf } from '@runparse/agent-script';
 setup();
+
+program
+  .command('deep-research-agent')
+  .description('Run the deep research agent')
+  .addOption(
+    new Option('--task <task>', 'The task to run').makeOptionMandatory(),
+  )
+  .action(async (options) => {
+    console.log(JSON.stringify(options, undefined, 2));
+
+    const browser = await playwright.chromium.launch({ headless: false });
+    const page = await browser.newPage();
+
+    try {
+      const agent = new DeepResearchAgent({
+        name: 'Deep Research Agent',
+        description: '',
+        maxSteps: 10,
+        page: page,
+        model: new ChatModel({
+          provider: 'anthropic',
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 4096,
+        }),
+      });
+
+      const result = await agent.run(options.task);
+
+      console.log(JSON.stringify(result, undefined, 2));
+    } catch (error) {
+      console.error(error);
+    }
+    await browser.close();
+  });
 
 program
   .command('web-data-agent')

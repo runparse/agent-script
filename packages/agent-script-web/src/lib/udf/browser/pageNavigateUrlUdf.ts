@@ -47,7 +47,7 @@ export class PageNavigateUrlUdf extends PageActionUdf {
       status: 'loading',
     };
     agent.navigationHistory.push(this.historyItem);
-    await agent.page.goto(input.url, { timeout: 10000 });
+    await agent.page.goto(input.url, { timeout: 30000 });
     return { success: true };
   }
 

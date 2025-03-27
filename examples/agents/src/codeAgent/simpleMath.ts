@@ -1,14 +1,10 @@
 // import { ChatModel } from '@runparse/agent-script';
 import { CodeAgent, FinalAnswerUdf } from '@runparse/agent-script';
 import { setup } from '@runparse/agent-script-instrumentation';
-import { chromium } from 'playwright';
 
 setup();
 
 async function main() {
-  const browser = await chromium.launch({ headless: false });
-  const page = await browser.newPage();
-
   const task = 'what is 2 + 2?';
 
   try {
@@ -26,15 +22,10 @@ async function main() {
     });
 
     const finalAnswer = await agent.run(task, {});
-    await page.close();
-    await browser.close();
 
     console.log('final answer:\n', finalAnswer);
   } catch (error) {
     console.error(error);
-  } finally {
-    await page.close();
-    await browser.close();
   }
 }
 
