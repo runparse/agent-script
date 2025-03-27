@@ -2,7 +2,7 @@
 
 ## Demo
 
-1. Task: give me the top 40 posts on hacker news
+Task: give me the top 40 posts on hacker news
 
 https://github.com/user-attachments/assets/8f06a3dd-73c3-49e9-a0d3-6b04eda4d1ff
 
