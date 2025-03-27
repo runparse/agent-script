@@ -12,13 +12,14 @@ async function main() {
   const browser = await chromium.launch({ headless: false });
   const page = await browser.newPage();
 
-  const task = 'What are the best selling books in 2025?';
+  const task =
+    'Should I build a startup that trains small LLMS for mobile use in 2025? Do a deep dive and give me a report in markdown format';
 
   try {
     const agent = new DeepResearchAgent({
       name: 'Web Agent',
       description: '',
-      maxSteps: 10,
+      maxSteps: 20,
       page,
       udfs: getDeepResearchAgentDefaultUdfs({ useBingSearch: false }), // set to true to use bing, must set BING_API_KEY in .env
       // uncomment to use anthropic, must set ANTHROPIC_API_KEY in .env
