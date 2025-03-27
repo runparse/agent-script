@@ -8,6 +8,8 @@
 
 AgentScript is a simple, observable code agent builder written in TypeScript, inspired by [smolagents](https://github.com/huggingface/smolagents). We built AgentScript to enable more production-grade agentic use cases, and share some smol examples (math agent, web-answers, web-navigation, deep research). Let’s build something awesome! 😊
 
+AgentScript is currently in **alpha**, help us by reporting issues and suggesting features!
+
 ## How It Works
 
 AgentScript provides an agent loop scaffold that breaks down a task into multiple steps. In each step, the agent uses its memory on previous steps, and
@@ -30,7 +32,14 @@ The Agent will keep taking steps towards the goal of the task and terminate when
 
 ## Quick Start
 
-Find ready-to-run samples in the `examples` folder
+### Local Development
+
+1. `pnpm install`
+2. Install [Arize-ai/phoenix](https://github.com/Arize-ai/phoenix) for detailed tracing.
+3. Start with ready-to-run samples in the `examples` folder.
+
+Run tests with `pnpm nx run-many --target=test --all`
+Generate build artifacts with `pnpm nx run-many --target=build --all`
 
 ## Why Code Agents?
 
@@ -41,3 +50,11 @@ At a fundamental level, LLMs are remarkable at writing code, and this makes sens
 In addition, there have been decades of work creating compilers, interpreters, and sandboxes for programming languages that provide highly optimized access to the core components of a computer (working memory, variables, long term storage, object oriented design, object passing, and so much more). We believe these components are likely to be the functional components of AGI.
 
 So we’re betting on code-writing agents as being the best agents in terms of quality and performance. For our own projects, to go past smol agents towards production, we needed a simple, yet powerful Typescript agent builder. That’s what AgentScript is.
+
+## Contributing
+
+Please fork and submit a pull request to main.
+
+## Licence
+
+MIT

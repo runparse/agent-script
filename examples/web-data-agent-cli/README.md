@@ -7,5 +7,7 @@ Run this example by
    The .env file should contain, at a minimum
 
 ```
-OPENAI_API_KEY=
+OPENAI_API_KEY=<your-key>
 ```
+
+Optional values are needed with different models and service providers. See run.ts comments for more.

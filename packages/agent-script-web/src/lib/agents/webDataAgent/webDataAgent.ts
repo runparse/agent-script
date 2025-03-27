@@ -61,12 +61,12 @@ export class WebDataAgent extends CodeAgent implements IWebAgent {
   override udfs: IUdf[];
 
   constructor(props: IWebDataAgentProps) {
-    const udfs: IUdf[] = props.udfs || [
-      ...getWebDataAgentDefaultUdfs({
+    const udfs: IUdf[] =
+      props.udfs ||
+      getWebDataAgentDefaultUdfs({
         extractionModel: props.model,
         extractionObjectSchema: props.dataObjectSchema,
-      }),
-    ];
+      });
 
     if (!udfs.some((udf) => udf instanceof DatasheetWriteUdf)) {
       throw new Error('The DatasheetWrite UDF is required');
@@ -121,15 +121,15 @@ export class WebDataAgent extends CodeAgent implements IWebAgent {
   ): Promise<Static<this['outputSchema']> | undefined> {
     // Get current memory step
     const currentStep = this.memory.steps[this.memory.steps.length - 1];
-    if (!(currentStep instanceof ActionStep)) return;
-
-    // Remove old screenshots to keep memory lean
-    for (const step of this.memory.steps) {
-      if (!(step instanceof ActionStep)) continue;
-      if (step.stepNumber <= currentStep.stepNumber - 2) {
-        step.observations = step.observations?.filter(
-          (o) => !(o.type === 'image' && o.context?.includes('screenshot')),
-        );
+    if (currentStep instanceof ActionStep) {
+      // Remove old screenshots to keep memory lean
+      for (const step of this.memory.steps) {
+        if (!(step instanceof ActionStep)) continue;
+        if (step.stepNumber <= currentStep.stepNumber - 2) {
+          step.observations = step.observations?.filter(
+            (o) => !(o.type === 'image' && o.context?.includes('screenshot')),
+          );
+        }
       }
     }
 

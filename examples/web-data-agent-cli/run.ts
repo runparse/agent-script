@@ -1,4 +1,4 @@
-import { ChatModel } from '@runparse/agent-script';
+// import { ChatModel } from '@runparse/agent-script';
 import { setup } from '@runparse/agent-script-instrumentation';
 import {
   WebDataAgent,
@@ -28,17 +28,18 @@ async function main() {
       page,
       dataObjectSchema: schema,
       shouldRunPlanning: true,
-      model: new ChatModel({
-        provider: 'anthropic',
-        model: 'claude-3-5-sonnet-latest',
-        max_tokens: 4096,
-      }),
       udfs: [
         ...getWebDataAgentDefaultUdfs({
-          useBingSearch: false,
+          useBingSearch: false, // set to true to use bing, must set BING_API_KEY in .env
           extractionObjectSchema: schema,
         }),
       ],
+      // uncomment to use anthropic, must set ANTHROPIC_API_KEY in .env
+      // model: new ChatModel({
+      //   provider: 'anthropic',
+      //   model: 'claude-3-5-sonnet-latest',
+      //   max_tokens: 4096,
+      // }),
     });
 
     await agent.run(task, {});
