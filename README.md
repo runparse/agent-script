@@ -3,6 +3,10 @@
 ## Demo
 
 Task: give me the top 40 posts on hacker news
+Repro:
+1. `cd agents`
+2. `npm install`
+3. `npx tsx --env-file=.env src/webDataAgent/hackernews.ts`
 
 https://github.com/user-attachments/assets/8f06a3dd-73c3-49e9-a0d3-6b04eda4d1ff
 
