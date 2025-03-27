@@ -32,6 +32,14 @@ The Agent will keep taking steps towards the goal of the task and terminate when
 
 ## Quick Start
 
+### As NPM Packages
+
+Use your preferred package manager (example below uses npm):
+
+```sh
+npm install @runparse/agent-script @runparse/agent-script-instrumentation @runparse/agent-script-web
+```
+
 ### Local Development
 
 1. `pnpm install`
