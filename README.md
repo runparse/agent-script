@@ -1,4 +1,5 @@
 # AgentScript
+AgentScript is a simple, observable code agent builder in TypeScript. Inspired by Hugging Face’s [smolagents](https://github.com/huggingface/smolagents) 🤗, we’re bringing agentic capabilities to TypeScript, making it easier to build production-ready AI agents.
 
 ## Demo
 
@@ -10,12 +11,10 @@ Repro:
 
 https://github.com/user-attachments/assets/8f06a3dd-73c3-49e9-a0d3-6b04eda4d1ff
 
-## What Is AgentScript
+## What You Get with AgentScript
 
-AgentScript is a simple, observable code agent builder in TypeScript. Inspired by Hugging Face’s [smolagents](https://github.com/huggingface/smolagents), we’re bringing agentic capabilities to TypeScript, making it easier to build production-ready AI agents.
-
-🔁 A simple, customizable agent loop that enables scalable agentic workflow execution.
-📊 No-code OpenTelemetry instrumentation. Full task / step tracing & token usage statistics. (See demo video)
+🔁 A simple, customizable agent loop that enables scalable agentic workflow execution.\
+📊 No-code OpenTelemetry instrumentation. Full task / step tracing & token usage statistics. (See demo video)\
 🌐 Web browser actions (visual) with sample web automation agent.
 
 🚀 Ready to dive in and build something awesome?
