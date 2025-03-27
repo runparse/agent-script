@@ -13,7 +13,7 @@ async function main() {
   const browser = await chromium.launch({ headless: false });
   const page = await browser.newPage();
 
-  const task = 'give me the top 20 posts on hacker news';
+  const task = 'give me the top 40 posts on hacker news';
   const schema = createTSchemaFromInstance({
     title: 'title of the article',
     author: 'author of the article',

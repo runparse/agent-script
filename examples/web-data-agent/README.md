@@ -5,7 +5,7 @@ WebDataAgent is an agent that collects structured data from the internet through
 Run this example by
 
 1. `npm install`
-2. `npx tsx --env-file=.env run.ts`
+2. `npx tsx --env-file=.env src/hackernews.ts`
    The .env file should contain, at a minimum
 
 ```
