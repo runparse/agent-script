@@ -6,12 +6,13 @@ import { Type, Static } from '@sinclair/typebox';
 export class DuckduckgoSearchUdf extends BaseUdf {
   name = 'duckduckgoSearch';
 
-  description =
-    'A search engine. Useful for when you need to answer questions about current events.';
+  description = 'Search the web for information';
 
   inputSchema = Type.Object(
     {
-      query: Type.String(),
+      query: Type.String({
+        description: 'The search query',
+      }),
     },
     { default: { query: 'string' } },
   );

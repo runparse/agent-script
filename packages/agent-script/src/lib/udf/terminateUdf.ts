@@ -9,10 +9,10 @@ export class TerminateUdf extends BaseStoppingUdf {
   inputSchema = Type.Object(
     {
       reason: Type.String({
-        description: 'The reason for terminating the task.',
+        description: 'The reason for terminating the task',
       }),
     },
-    { default: { reason: 'The task is complete.' } },
+    { default: { reason: 'The task is complete' } },
   );
 
   outputSchema = Type.String();

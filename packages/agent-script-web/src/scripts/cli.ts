@@ -8,7 +8,7 @@ import { ChatModel, CodeAgent, FinalAnswerUdf } from '@runparse/agent-script';
 setup();
 
 program
-  .command('web-agent')
+  .command('web-data-agent')
   .description('Run the web agent')
   .addOption(
     new Option('--task <task>', 'The task to run').makeOptionMandatory(),

@@ -13,13 +13,13 @@ import { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/co
 export class PageExtractDataUdf extends PageUdf {
   name = 'pageExtractData';
   description =
-    'Extracts data from current webpage you are on, following user instructions.';
+    'Extracts data from current webpage you are on, following user instructions';
 
   inputSchema = Type.Object(
     {
       instructions: Type.String({
         description:
-          'Describe the type of data you want to extract from the webpage.',
+          'Describe the type of data you want to extract from the webpage',
       }),
     },
     { default: { instructions: 'string' } },

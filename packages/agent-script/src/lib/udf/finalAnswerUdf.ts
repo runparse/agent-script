@@ -8,7 +8,7 @@ export class FinalAnswerUdf extends BaseStoppingUdf {
   description: string;
 
   inputSchema: TSchema = Type.Object({
-    answer: Type.String({ description: 'The final answer to the task.' }),
+    answer: Type.String({ description: 'The final answer to the task' }),
   });
   outputSchema: TSchema;
   output: any;

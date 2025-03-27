@@ -22,7 +22,7 @@ export class PageClickUdf extends PageActionUdf {
       elementIndex: Type.Optional(
         Type.Number({
           description:
-            '(Optional) The index of the element in the matching elements. 0 is the first element, 1 is the second element, etc. Defaults to 0.',
+            '(Optional) The index of the element in the matching elements. 0 is the first element, 1 is the second element, etc. Defaults to 0',
         }),
       ),
     },

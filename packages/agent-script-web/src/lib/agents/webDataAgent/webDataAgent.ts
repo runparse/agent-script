@@ -3,7 +3,9 @@ import {
   BingSearchUdf,
   CodeAgent,
   DatasheetWriteUdf,
+  DuckduckgoSearchUdf,
   IChatMessage,
+  IChatModel,
   ICodeAgentProps,
   IUdf,
   PartialBy,
@@ -22,15 +24,27 @@ import {
 import { generateDefaultJsonSchemaInstance } from '../../utils/schema';
 import { webDataAgentPrompt } from './webDataAgent.prompt';
 
-export const WebDataAgentDefaultUdfs = [
+export const getWebDataAgentDefaultUdfs = ({
+  useBingSearch = true,
+  extractionModel,
+  extractionObjectSchema,
+}: {
+  useBingSearch?: boolean;
+  extractionModel?: IChatModel;
+  extractionObjectSchema: TSchema;
+}) => [
   new PageClickUdf(),
   new PageNavigateUrlUdf(),
   new PageGoBackUdf(),
   new DatasheetWriteUdf({}),
-  new BingSearchUdf(),
+  useBingSearch ? new BingSearchUdf() : new DuckduckgoSearchUdf(),
   new TerminateUdf(),
   new ThinkUdf(),
-] as readonly IUdf[];
+  new PageExtractDataUdf({
+    model: extractionModel,
+    objectSchema: extractionObjectSchema,
+  }),
+];
 
 export interface IWebDataAgentProps
   extends Omit<PartialBy<ICodeAgentProps, 'description' | 'prompts'>, 'udfs'> {
@@ -47,16 +61,26 @@ export class WebDataAgent extends CodeAgent implements IWebAgent {
   override udfs: IUdf[];
 
   constructor(props: IWebDataAgentProps) {
-    const udfs: IUdf[] = props.udfs || [...WebDataAgentDefaultUdfs];
-    udfs.push(
-      new PageExtractDataUdf({
-        model: props.model,
-        objectSchema: props.dataObjectSchema,
+    const udfs: IUdf[] = props.udfs || [
+      ...getWebDataAgentDefaultUdfs({
+        extractionModel: props.model,
+        extractionObjectSchema: props.dataObjectSchema,
       }),
-    );
+    ];
 
     if (!udfs.some((udf) => udf instanceof DatasheetWriteUdf)) {
-      throw new Error('datasheetWrite UDF is required');
+      throw new Error('The DatasheetWrite UDF is required');
+    }
+    if (!udfs.some((udf) => udf instanceof PageExtractDataUdf)) {
+      throw new Error('The PageExtractData UDF is required');
+    }
+    if (
+      !udfs.some(
+        (udf) =>
+          udf instanceof BingSearchUdf || udf instanceof DuckduckgoSearchUdf,
+      )
+    ) {
+      throw new Error('A web search UDF is required');
     }
 
     super({

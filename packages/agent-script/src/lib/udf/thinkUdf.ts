@@ -5,7 +5,7 @@ import { ICodeAgent } from '../types';
 export class ThinkUdf extends BaseUdf {
   name = 'think';
   description =
-    'Reflect on the steps taken so far and update the plan if improvements / changes should be made.';
+    'Reflect on the steps taken so far and update the plan if improvements / changes should be made';
 
   inputSchema = Type.Any();
   outputSchema = Type.Any();

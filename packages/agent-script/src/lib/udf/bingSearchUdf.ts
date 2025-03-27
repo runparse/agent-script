@@ -6,23 +6,31 @@ import axios from 'axios';
 export class BingSearchUdf extends BaseUdf {
   name = 'bingSearch';
 
-  description = 'Search the web for information using Bing.';
+  description = 'Search the web for information using Bing';
 
   inputSchema = Type.Object(
     {
-      query: Type.String(),
+      query: Type.String({ description: 'The search query' }),
       options: Type.Optional(
         Type.Object({
-          site: Type.Optional(Type.String()),
-          filetype: Type.Optional(Type.String()),
-          intitle: Type.Optional(Type.String()),
-          inurl: Type.Optional(Type.String()),
-          exclude: Type.Optional(
-            Type.Union([Type.String(), Type.Array(Type.String())]),
+          site: Type.Optional(
+            Type.String({ description: 'The site to search' }),
           ),
-          market: Type.Optional(Type.String()),
-          count: Type.Optional(Type.Number()),
-          offset: Type.Optional(Type.Number()),
+          count: Type.Optional(
+            Type.Number({ description: 'Number of results to return' }),
+          ),
+          offset: Type.Optional(
+            Type.Number({
+              description: 'Result pagination offset',
+            }),
+          ),
+          market: Type.Optional(Type.String({ description: 'The market' })),
+          // exclude: Type.Optional(
+          //   Type.Union([Type.String(), Type.Array(Type.String())]),
+          // ),
+          // filetype: Type.Optional(Type.String()),
+          // intitle: Type.Optional(Type.String()),
+          // inurl: Type.Optional(Type.String()),
         }),
       ),
     },
@@ -34,10 +42,10 @@ export class BingSearchUdf extends BaseUdf {
           count: 20,
           offset: 0,
           market: 'en-US',
-          exclude: [],
-          filetype: '',
-          intitle: '',
-          inurl: '',
+          // exclude: [],
+          // filetype: '',
+          // intitle: '',
+          // inurl: '',
         },
       },
     },
@@ -81,25 +89,25 @@ export class BingSearchUdf extends BaseUdf {
       if (options.site) {
         queryParts.push(`site:${options.site}`);
       }
-      if (options.filetype) {
-        queryParts.push(`filetype:${options.filetype}`);
-      }
-      if (options.intitle) {
-        queryParts.push(`intitle:${options.intitle}`);
-      }
-      if (options.inurl) {
-        queryParts.push(`inurl:${options.inurl}`);
-      }
-      if (options.exclude) {
-        // Handle multiple exclusion keywords.
-        if (Array.isArray(options.exclude)) {
-          options.exclude.forEach((keyword) => {
-            queryParts.push(`-${keyword}`);
-          });
-        } else {
-          queryParts.push(`-${options.exclude}`);
-        }
-      }
+      // if (options.filetype) {
+      //   queryParts.push(`filetype:${options.filetype}`);
+      // }
+      // if (options.intitle) {
+      //   queryParts.push(`intitle:${options.intitle}`);
+      // }
+      // if (options.inurl) {
+      //   queryParts.push(`inurl:${options.inurl}`);
+      // }
+      // if (options.exclude) {
+      //   // Handle multiple exclusion keywords.
+      //   if (Array.isArray(options.exclude)) {
+      //     options.exclude.forEach((keyword) => {
+      //       queryParts.push(`-${keyword}`);
+      //     });
+      //   } else {
+      //     queryParts.push(`-${options.exclude}`);
+      //   }
+      // }
     }
 
     return queryParts.join(' ');
