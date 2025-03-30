@@ -8,3 +8,4 @@ export * from './agentLogger';
 export * from './chatModel';
 export * from './lang';
 export * from './utils';
+export * from './errors';

@@ -13,7 +13,7 @@ export class PageGoBackUdf extends PageActionUdf {
 
   private historyItem: IWebAgentNavigationHistoryItem | undefined;
 
-  override async call(
+  override async pageActionCall(
     input: Static<typeof this.inputSchema>,
     agent: IWebAgent,
   ): Promise<Static<typeof this.outputSchema>> {
