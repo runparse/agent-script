@@ -12,7 +12,7 @@ export default [
   {
     input: 'src/index.ts', // adjust if your entrypoint is different
     output: {
-      file: 'dist/esm/index.js',
+      file: 'dist/esm/index.mjs',
       format: 'esm',
       sourcemap: true,
     },
@@ -27,7 +27,7 @@ export default [
   {
     input: 'src/index.ts', // adjust if your entrypoint is different
     output: {
-      file: 'dist/cjs/index.js',
+      file: 'dist/cjs/index.cjs',
       format: 'cjs',
       sourcemap: true,
     },
