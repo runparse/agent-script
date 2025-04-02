@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "@runparse/agent-script": "^0.0.1",
-    "@runparse/agent-script-instrumentation": "^0.0.1",
-    "@runparse/agent-script-web": "^0.0.1",
+    "@runparse/agent-script": ">=0.0.1 <0.1.0",
+    "@runparse/agent-script-instrumentation": ">=0.0.1 <0.1.0",
+    "@runparse/agent-script-web": ">=0.0.1 <0.1.0",
     "playwright": "1.50.0"
   },
   "devDependencies": {
