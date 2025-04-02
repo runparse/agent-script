@@ -17,6 +17,7 @@ import {
   IAgent,
   IAgentLogger,
   IAgentPrompt,
+  ICallableResult,
   IChatMessage,
   IChatModel,
   ICodeAgent,
@@ -169,7 +170,7 @@ export class CodeAgent implements ICodeAgent {
     return messages;
   }
 
-  async callUdf(udfName: string, input: any): Promise<Static<TSchema>> {
+  async callUdf(udfName: string, input: any): Promise<ICallableResult> {
     const udf = this.udfs.find((t) => t.name === udfName) as IUdf;
 
     if (!udf) {
@@ -183,11 +184,17 @@ export class CodeAgent implements ICodeAgent {
       Value.Assert(udf.inputSchema, input);
       await udf.onBeforeCall(input, this);
       const output = await udf.call(input, this);
+      const summary = await udf.getCallResultSummary(output);
       await udf.onAfterCall(input, output, this);
-      return output;
+      return {
+        returnValue: output,
+        returnValueSummary: summary,
+        callable: udfName,
+      };
     } catch (error: any) {
-      const errorMsg = `Error when calling UDF ${udfName} with arguments ${JSON.stringify(
-        input,
+      const errorMsg = `Error when calling UDF ${udfName} with arguments ${truncateContent(
+        JSON.stringify(input),
+        500,
       )}: ${error.name}: ${
         error.message
       }\nYou should only call this UDF with a correct input.\nAs a reminder, this UDF's description is the following: '${
@@ -575,7 +582,7 @@ export class CodeAgent implements ICodeAgent {
   }
 
   parseCodeOutput(content: string): string {
-    const sanitizedContent = content.replace(/^\s*(let|const)\s+/gm, '');
+    const sanitizedContent = content.replace(/^\s*(let|const|var)\s+/gm, '');
 
     const pattern = /```(?:js|javascript|ts|typescript)?\s*\n?([\s\S]*?)\n?```/;
     const match = sanitizedContent.match(pattern);

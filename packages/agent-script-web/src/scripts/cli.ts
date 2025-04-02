@@ -4,7 +4,13 @@ import { Option, program } from 'commander';
 import playwright from 'playwright';
 import { WebDataAgent, DeepResearchAgent } from '../lib/agents/webAgents/index';
 import { createTSchemaFromInstance } from '../lib/utils/schema';
-import { CodeAgent, FinalAnswerUdf } from '@runparse/agent-script';
+import {
+  CodeAgent,
+  FinalAnswerUdf,
+  NotebookWriteUdf,
+} from '@runparse/agent-script';
+import { RedditDataAgent } from '../lib/agents/webAgents/redditDataAgent';
+
 setup();
 
 program
@@ -39,6 +45,34 @@ program
       console.error(error);
     }
     await browser.close();
+  });
+
+program
+  .command('reddit-data-agent')
+  .description('Run the reddit agent')
+  .addOption(
+    new Option('--task <task>', 'The task to run').makeOptionMandatory(),
+  )
+  .action(async (options) => {
+    console.log(JSON.stringify(options, undefined, 2));
+
+    try {
+      const agent = new RedditDataAgent({
+        name: 'Reddit Data Agent',
+        maxSteps: 10,
+      });
+
+      const result = await agent.run(options.task);
+      console.log(
+        agent.udfs
+          .find((udf) => udf instanceof NotebookWriteUdf)
+          ?.content.toString(),
+      );
+
+      console.log(JSON.stringify(result, undefined, 2));
+    } catch (error) {
+      console.error(error);
+    }
   });
 
 program

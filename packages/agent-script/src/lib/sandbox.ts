@@ -2,23 +2,28 @@ import * as vm from 'vm';
 import { BufferConsole } from './bufferConsole';
 import { AgentError, AgentErrorCode } from './errors';
 import { ICallableResult } from './types';
-
+import {
+  truncateContent,
+  MAX_LENGTH_TRUNCATE_CONTENT,
+  formatBytes,
+} from './utils';
+import { notEmpty } from './lang';
 export class Sandbox {
   constructor(
     public vmContext: vm.Context = vm.createContext(),
     public callHistory: ICallableResult[][] = [],
   ) {}
 
-  register(callable: string, fn: (...fnArgs: any[]) => Promise<any>) {
+  register(
+    callable: string,
+    fn: (...fnArgs: any[]) => Promise<ICallableResult>,
+  ) {
     this.vmContext[callable] = async (...args: any[]) => {
       const currentScriptCalls = this.callHistory[this.callHistory.length - 1]!;
       try {
         const result = await fn(...args);
-        currentScriptCalls.push({
-          returnValue: result,
-          callable: callable,
-        });
-        return result;
+        currentScriptCalls.push(result);
+        return result.returnValue;
       } catch (error: any) {
         throw new Error(`Error calling function ${callable}: ${error.message}`);
       }
@@ -82,16 +87,49 @@ export class Sandbox {
   formatScriptCallResults(
     variables: string[],
     callResults: ICallableResult[],
+    options: {
+      indented: boolean;
+      callResultMaxLength: number;
+    } = {
+      indented: true,
+      callResultMaxLength: MAX_LENGTH_TRUNCATE_CONTENT,
+    },
   ): string {
     return callResults
       .map((call) => {
         const correspondingVariable = variables.find(
           (variable) => this.vmContext[variable] === call.returnValue,
         );
-        return `// ${call.callable} -> \n${
+
+        if (call.returnValueSummary) {
+          return `// ${call.callable} ->\n\n${call.returnValueSummary}`;
+        }
+
+        let formattedReturnValue = options.indented
+          ? JSON.stringify(call.returnValue, null, 2)
+          : JSON.stringify(call.returnValue);
+
+        const truncated =
+          formattedReturnValue.length > options.callResultMaxLength;
+
+        if (truncated) {
+          formattedReturnValue = truncateContent(
+            formattedReturnValue,
+            options.callResultMaxLength,
+          );
+        }
+
+        return `// ${call.callable} -> ${
+          truncated
+            ? `(Truncated. Full size is ${formatBytes(
+                formattedReturnValue.length,
+              )})`
+            : ''
+        }\n${
           correspondingVariable ? `${correspondingVariable} = ` : ''
-        }${JSON.stringify(call.returnValue, null, 2)}`;
+        }${formattedReturnValue}`;
       })
+      .filter(notEmpty)
       .join('\n\n');
   }
 }

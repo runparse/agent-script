@@ -3,14 +3,14 @@ import { ICodeAgent } from '../types';
 import { Type, Static } from '@sinclair/typebox';
 import axios from 'axios';
 
-export class BingSearchUdf extends BaseUdf {
-  name = 'bingSearch';
+export class BraveSearchUdf extends BaseUdf {
+  name = 'braveWebSearch';
 
-  description = 'Search the web for information using Bing';
+  description = 'Search the web for information using Brave';
 
   inputSchema = Type.Object(
     {
-      query: Type.String({ description: 'The search query' }),
+      q: Type.String({ description: 'The search query' }),
       options: Type.Optional(
         Type.Object({
           site: Type.Optional(
@@ -24,11 +24,11 @@ export class BingSearchUdf extends BaseUdf {
               description: 'Result pagination offset',
             }),
           ),
-          market: Type.Optional(Type.String({ description: 'The market' })),
+          country: Type.Optional(Type.String({ description: 'The country' })),
           freshness: Type.Optional(
             Type.String({
               description:
-                'The freshness of the results, must be in the form "YYYY-MM-DD..YYYY-MM-DD"',
+                'The freshness of the results, must be in the form "YYYY-MM-DDtoYYYY-MM-DD"',
             }),
           ),
           // exclude: Type.Optional(
@@ -68,14 +68,14 @@ export class BingSearchUdf extends BaseUdf {
 
   private maxResults = 10;
 
-  private endpoint = 'https://api.bing.microsoft.com/v7.0/search';
+  private endpoint = 'https://api.search.brave.com/res/v1/web/search';
 
-  private apiKey = process.env.BING_API_KEY;
+  private apiKey = process.env.BRAVE_SEARCH_API_KEY;
 
   constructor(public urlBlacklist: string[] = []) {
     super();
     if (!this.apiKey) {
-      throw new Error('BING_API_KEY is not set');
+      throw new Error('BRAVE_SEARCH_API_KEY is not set');
     }
   }
 
@@ -123,7 +123,7 @@ export class BingSearchUdf extends BaseUdf {
     input: Static<typeof this.inputSchema>,
     agent: ICodeAgent,
   ): Promise<Static<typeof this.outputSchema>> {
-    const query = this.buildQuery(input.query, input.options);
+    const query = this.buildQuery(input.q, input.options);
     const url = new URL(this.endpoint);
     url.searchParams.append('q', query);
     url.searchParams.append(
@@ -132,8 +132,8 @@ export class BingSearchUdf extends BaseUdf {
     );
 
     if (input.options) {
-      if (input.options.market) {
-        url.searchParams.append('mkt', input.options.market);
+      if (input.options.country) {
+        url.searchParams.append('country', input.options.country);
       }
       if (input.options.freshness) {
         url.searchParams.append('freshness', input.options.freshness);
@@ -145,27 +145,29 @@ export class BingSearchUdf extends BaseUdf {
 
     const response = await axios.get(url.toString(), {
       headers: {
-        'Ocp-Apim-Subscription-Key': this.apiKey,
+        'X-Subscription-Token': this.apiKey,
+        Accept: 'application/json',
+        'Accept-Encoding': 'gzip',
       },
     });
 
     if (response.status >= 300) {
       throw new Error(
-        `Bing search API request failed with status ${response.status}`,
+        `Brave search API request failed with status ${response.status}`,
       );
     }
 
-    if ((response.data.webPages?.value?.length || 0) === 0) {
+    const results = (response?.data?.web?.results || []).map((result: any) => ({
+      title: result.title,
+      link: result.url,
+      snippet: result.description,
+    }));
+
+    if (results.length === 0) {
       return [];
     }
 
-    return response.data.webPages.value
-      .filter((result: any) => !this.urlBlacklist.includes(result.url))
-      .map((result: any) => ({
-        title: result.name,
-        link: result.url,
-        snippet: result.snippet,
-      }));
+    return results;
   }
 
   override async getCallResultSummary(
@@ -174,7 +176,7 @@ export class BingSearchUdf extends BaseUdf {
     if (output.length === 0) {
       return 'No results found';
     }
-    return `Fetched ${output.length} results from Bing:\n${output
+    return `Fetched ${output.length} results from Brave. \n${output
       .map((result) => `- ${result.title}\n${result.link}\n${result.snippet}`)
       .join('\n')}`;
   }

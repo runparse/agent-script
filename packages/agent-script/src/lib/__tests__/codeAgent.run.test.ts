@@ -59,7 +59,13 @@ describe('CodeAgent', () => {
         })
         .mockResolvedValueOnce({
           returnValue: 'final result',
-          calls: [{ callable: 'finalAnswer', returnValue: 'final result' }],
+          calls: [
+            {
+              callable: 'finalAnswer',
+              returnValue: 'final result',
+              returnValueSummary: null,
+            },
+          ],
           output: 'step 2 output',
         });
 
@@ -197,7 +203,13 @@ describe('CodeAgent', () => {
         })
         .mockResolvedValueOnce({
           returnValue: 'final result',
-          calls: [{ callable: 'finalAnswer', returnValue: 'final result' }],
+          calls: [
+            {
+              callable: 'finalAnswer',
+              returnValue: 'final result',
+              returnValueSummary: null,
+            },
+          ],
           output: 'step 2 output',
         });
 
@@ -239,7 +251,13 @@ describe('CodeAgent', () => {
         .mockRejectedValueOnce(new Error('Script error'))
         .mockResolvedValueOnce({
           returnValue: 'final result',
-          calls: [{ callable: 'finalAnswer', returnValue: 'final result' }],
+          calls: [
+            {
+              callable: 'finalAnswer',
+              returnValue: 'final result',
+              returnValueSummary: null,
+            },
+          ],
           output: 'step 2 output',
         });
 
@@ -379,7 +397,11 @@ describe('CodeAgent', () => {
       const sandboxResult = {
         returnValue: null,
         calls: [
-          { callable: 'finalAnswer', returnValue: 'This is the solution' },
+          {
+            callable: 'finalAnswer',
+            returnValue: 'This is the solution',
+            returnValueSummary: null,
+          },
         ],
         output: '',
       };
@@ -666,7 +688,13 @@ describe('CodeAgent', () => {
         .mockRejectedValueOnce(new Error('Runtime error'))
         .mockResolvedValueOnce({
           returnValue: 'final result',
-          calls: [{ callable: 'finalAnswer', returnValue: 'final result' }],
+          calls: [
+            {
+              callable: 'finalAnswer',
+              returnValue: 'final result',
+              returnValueSummary: null,
+            },
+          ],
           output: 'step 3 output',
         });
 

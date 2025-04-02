@@ -18,7 +18,8 @@
   "dependencies": {
     "sharp": "0.33.5",
     "turndown": "7.2.0",
-    "htmlparser2": "10.0.0"
+    "htmlparser2": "10.0.0",
+    "snoowrap": "1.23.0"
   },
   "peerDependencies": {
     "@runparse/agent-script": "workspace:*",

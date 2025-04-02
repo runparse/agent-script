@@ -148,7 +148,13 @@ export function generateDefaultJsonSchemaInstance(
     default:
       switch (schema[Kind]) {
         case 'Union':
-          return generateDefaultJsonSchemaInstance(schema.anyOf[0] as TSchema);
+          return schema.anyOf
+            .map((type: any) =>
+              JSON.stringify(
+                generateDefaultJsonSchemaInstance(type as TSchema),
+              ),
+            )
+            .join(' | ');
         default:
           throw new Error(`Unsupported schema type: ${JSON.stringify(schema)}`);
       }

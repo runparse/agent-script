@@ -62,8 +62,10 @@ export class ChatModel implements IChatModel {
     // @ts-ignore
     const responseFormat = request.response_format;
     // @ts-ignore
-    if (responseFormat?.type !== 'json_schema') {
-      throw new ChatCompletionError('response_format must be a json_schema');
+    if (!['json_schema', 'json_object'].includes(responseFormat?.type)) {
+      throw new ChatCompletionError(
+        'response_format must be a json_schema or json_object',
+      );
     }
     const provider = this.options.provider;
     if (provider === 'anthropic') {

@@ -9,7 +9,11 @@ export abstract class BaseUdf implements IUdf {
   abstract outputSchema: TSchema;
 
   getSignature(): string {
-    return `// ${this.description}\nasync function ${
+    const descriptionAsComment = this.description
+      .split('\n')
+      .map((line) => `// ${line}`)
+      .join('\n');
+    return `${descriptionAsComment}\nasync function ${
       this.name
     }(params: ${schemaToTypeString(this.inputSchema)}): Promise\<${
       this.outputSchema ? schemaToTypeString(this.outputSchema) : 'any'
@@ -31,4 +35,10 @@ export abstract class BaseUdf implements IUdf {
     output: Static<this['outputSchema']>,
     agent: ICodeAgent,
   ): Promise<void> {}
+
+  async getCallResultSummary(
+    output: Static<this['outputSchema']>,
+  ): Promise<string | null> {
+    return null;
+  }
 }

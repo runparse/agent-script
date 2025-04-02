@@ -61,6 +61,7 @@ describe('CodeAgent', () => {
         call: jest.fn(),
         onBeforeCall: jest.fn(),
         onAfterCall: jest.fn(),
+        getCallResultSummary: jest.fn(),
       };
 
       // Expect the constructor to throw an error
@@ -97,6 +98,7 @@ describe('CodeAgent', () => {
         call: jest.fn(),
         onBeforeCall: jest.fn(),
         onAfterCall: jest.fn(),
+        getCallResultSummary: jest.fn(),
       };
 
       // Initialize the agent
@@ -129,6 +131,7 @@ describe('CodeAgent', () => {
         call: jest.fn(),
         onBeforeCall: jest.fn(),
         onAfterCall: jest.fn(),
+        getCallResultSummary: jest.fn(),
       };
 
       const duplicateUdf2: IUdf = {
@@ -140,6 +143,7 @@ describe('CodeAgent', () => {
         call: jest.fn(),
         onBeforeCall: jest.fn(),
         onAfterCall: jest.fn(),
+        getCallResultSummary: jest.fn(),
       };
 
       // Expect the constructor to throw an error
@@ -174,6 +178,7 @@ describe('CodeAgent', () => {
         call: jest.fn(),
         onBeforeCall: jest.fn(),
         onAfterCall: jest.fn(),
+        getCallResultSummary: jest.fn(),
       };
 
       // Create a spy on Sandbox.register
@@ -223,6 +228,7 @@ describe('CodeAgent', () => {
         call: jest.fn().mockResolvedValue('Success response'),
         onBeforeCall: jest.fn(),
         onAfterCall: jest.fn(),
+        getCallResultSummary: jest.fn().mockResolvedValue(null),
       };
 
       // Initialize the agent
@@ -243,7 +249,11 @@ describe('CodeAgent', () => {
         { testParam: 'test value' },
         agent,
       );
-      expect(result).toBe('Success response');
+      expect(result).toEqual({
+        returnValue: 'Success response',
+        returnValueSummary: null,
+        callable: 'mockUdf',
+      });
     });
 
     test('should throw error when calling non-existent UDF', async () => {
@@ -284,6 +294,7 @@ describe('CodeAgent', () => {
         call: jest.fn().mockResolvedValue('Success response'),
         onBeforeCall: jest.fn(),
         onAfterCall: jest.fn(),
+        getCallResultSummary: jest.fn(),
       };
 
       // Initialize the agent
@@ -319,6 +330,7 @@ describe('CodeAgent', () => {
         call: jest.fn().mockResolvedValue('Success response'),
         onBeforeCall: jest.fn(),
         onAfterCall: jest.fn(),
+        getCallResultSummary: jest.fn().mockResolvedValue(null),
       };
 
       // Initialize the agent
@@ -330,12 +342,16 @@ describe('CodeAgent', () => {
       });
 
       const input = { testParam: 'test value' };
-      const output = await agent.callUdf('mockUdf', input);
+      const callResult = await agent.callUdf('mockUdf', input);
 
       // Verify hooks were called in the correct order with the right arguments
       expect(mockUdf.onBeforeCall).toHaveBeenCalledWith(input, agent);
       expect(mockUdf.call).toHaveBeenCalledWith(input, agent);
-      expect(mockUdf.onAfterCall).toHaveBeenCalledWith(input, output, agent);
+      expect(mockUdf.onAfterCall).toHaveBeenCalledWith(
+        input,
+        callResult.returnValue,
+        agent,
+      );
 
       // Verify the call order
       expect(mockUdf.onBeforeCall).toHaveBeenCalled();
@@ -361,6 +377,7 @@ describe('CodeAgent', () => {
         }),
         onBeforeCall: jest.fn(),
         onAfterCall: jest.fn(),
+        getCallResultSummary: jest.fn(),
       };
 
       // Initialize the agent

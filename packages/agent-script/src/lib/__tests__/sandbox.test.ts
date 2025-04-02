@@ -10,7 +10,11 @@ describe('Sandbox', () => {
 
   describe('register', () => {
     it('should register a callable function in the vmContext', async () => {
-      const testFn = async () => 'test result';
+      const testFn = async () => ({
+        returnValue: 'test result',
+        returnValueSummary: null,
+        callable: 'testFunction',
+      });
       sandbox.register('testFunction', testFn);
 
       const result = await sandbox.executeScript('await testFunction()');
@@ -19,13 +23,21 @@ describe('Sandbox', () => {
       const result2 = await sandbox.executeScript(
         'return await testFunction()',
       );
-      expect(result2.returnValue).toBe('test result');
+      expect(result2.returnValue).toEqual('test result');
     });
 
     it('should track function calls in callHistory', async () => {
-      const testFn = async () => 'test result';
+      const testFn = async () => ({
+        returnValue: 'test result',
+        returnValueSummary: 'test result summary',
+        callable: 'testFunction',
+      });
       sandbox.register('testFunction', testFn);
-      const testFn2 = async () => 'test result 2';
+      const testFn2 = async () => ({
+        returnValue: 'test result 2',
+        returnValueSummary: 'test result 2 summary',
+        callable: 'testFunction2',
+      });
       sandbox.register('testFunction2', testFn2);
 
       await sandbox.executeScript(
@@ -34,10 +46,12 @@ describe('Sandbox', () => {
       expect(sandbox.callHistory[0]).toHaveLength(2);
       expect(sandbox.callHistory[0]?.[0]).toEqual({
         returnValue: 'test result',
+        returnValueSummary: 'test result summary',
         callable: 'testFunction',
       });
       expect(sandbox.callHistory[0]?.[1]).toEqual({
         returnValue: 'test result 2',
+        returnValueSummary: 'test result 2 summary',
         callable: 'testFunction2',
       });
 
@@ -46,6 +60,7 @@ describe('Sandbox', () => {
       expect(sandbox.callHistory[1]).toHaveLength(1);
       expect(sandbox.callHistory[1]?.[0]).toEqual({
         returnValue: 'test result',
+        returnValueSummary: 'test result summary',
         callable: 'testFunction',
       });
     });
@@ -64,13 +79,17 @@ describe('Sandbox', () => {
     });
 
     it('should properly pass arguments to registered functions', async () => {
-      const argFn = async ({ a, b }: { a: number; b: string }) => `${a}-${b}`;
+      const argFn = async ({ a, b }: { a: number; b: string }) => ({
+        returnValue: `${a}-${b}`,
+        returnValueSummary: null,
+        callable: 'argFunction',
+      });
       sandbox.register('argFunction', argFn);
 
       const result = await sandbox.executeScript(
         'return await argFunction({ a: 42, b: "test" })',
       );
-      expect(result.returnValue).toBe('42-test');
+      expect(result.returnValue).toEqual('42-test');
     });
   });
 
@@ -86,7 +105,11 @@ describe('Sandbox', () => {
     });
 
     it('should track all function calls made during execution', async () => {
-      const testFn = async () => 'result';
+      const testFn = async () => ({
+        returnValue: 'result',
+        returnValueSummary: null,
+        callable: 'testFn',
+      });
       sandbox.register('testFn', testFn);
 
       const result = await sandbox.executeScript(`
@@ -97,10 +120,12 @@ describe('Sandbox', () => {
       expect(result.calls).toHaveLength(2);
       expect(result.calls[0]).toEqual({
         returnValue: 'result',
+        returnValueSummary: null,
         callable: 'testFn',
       });
       expect(result.calls[1]).toEqual({
         returnValue: 'result',
+        returnValueSummary: null,
         callable: 'testFn',
       });
     });
@@ -125,7 +150,11 @@ describe('Sandbox', () => {
     });
 
     it('should track newly created variables if associated with a UDF call', async () => {
-      const testFn = async () => 'result';
+      const testFn = async () => ({
+        returnValue: 'result',
+        returnValueSummary: null,
+        callable: 'testFn',
+      });
       sandbox.register('testFn', testFn);
 
       const result = await sandbox.executeScript(`
@@ -139,22 +168,34 @@ describe('Sandbox', () => {
 
   describe('formatScriptCallResults', () => {
     it('should format call results with corresponding variables', () => {
-      const testValue = { key: 'value' };
-      sandbox.vmContext['testVar'] = testValue;
+      const testCallReturnValue = { key: 'value' };
+      sandbox.vmContext['testVar'] = testCallReturnValue;
 
       const formatted = sandbox.formatScriptCallResults(
         ['testVar'],
-        [{ callable: 'testFn', returnValue: testValue }],
+        [
+          {
+            callable: 'testFn',
+            returnValue: testCallReturnValue,
+            returnValueSummary: null,
+          },
+        ],
       );
 
       expect(formatted).toContain('testVar =');
-      expect(formatted).toContain(JSON.stringify(testValue, null, 2));
+      expect(formatted).toContain(JSON.stringify(testCallReturnValue, null, 2));
     });
 
     it('should format call results without variables', () => {
       const formatted = sandbox.formatScriptCallResults(
         [],
-        [{ callable: 'testFn', returnValue: 'result' }],
+        [
+          {
+            callable: 'testFn',
+            returnValue: 'result',
+            returnValueSummary: null,
+          },
+        ],
       );
 
       expect(formatted).not.toContain('=');
@@ -163,8 +204,16 @@ describe('Sandbox', () => {
 
     it('should handle multiple call results', () => {
       const calls = [
-        { callable: 'fn1', returnValue: 'result1' },
-        { callable: 'fn2', returnValue: 'result2' },
+        {
+          callable: 'fn1',
+          returnValue: 'result1',
+          returnValueSummary: null,
+        },
+        {
+          callable: 'fn2',
+          returnValue: 'result2',
+          returnValueSummary: null,
+        },
       ];
 
       const formatted = sandbox.formatScriptCallResults([], calls);
@@ -185,10 +234,95 @@ describe('Sandbox', () => {
 
       const formatted = sandbox.formatScriptCallResults(
         [],
-        [{ callable: 'testFn', returnValue: complexValue }],
+        [
+          {
+            callable: 'testFn',
+            returnValue: complexValue,
+            returnValueSummary: null,
+          },
+        ],
       );
 
       expect(formatted).toContain(JSON.stringify(complexValue, null, 2));
+    });
+
+    it('should truncate long return values', () => {
+      const longString = 'a'.repeat(2048);
+
+      const formatted = sandbox.formatScriptCallResults(
+        [],
+        [
+          {
+            callable: 'testFn',
+            returnValue: longString,
+            returnValueSummary: null,
+          },
+        ],
+        { indented: true, callResultMaxLength: 2047 },
+      );
+
+      expect(formatted).toContain('(Truncated. Full size is 2.06 KB)');
+      expect(formatted).toContain(
+        '-- Content has been truncated to be below 2047 characters --',
+      );
+    });
+
+    it('should not truncate content under the max length', () => {
+      const shortString = 'short result';
+
+      const formatted = sandbox.formatScriptCallResults(
+        [],
+        [
+          {
+            callable: 'testFn',
+            returnValue: shortString,
+            returnValueSummary: null,
+          },
+        ],
+        { indented: true, callResultMaxLength: 100 },
+      );
+
+      expect(formatted).not.toContain('Truncated');
+      expect(formatted).toContain('"short result"');
+    });
+
+    it('should respect the indented option when formatting', () => {
+      const testObject = { a: 1, b: { c: 2 } };
+
+      const indentedFormatted = sandbox.formatScriptCallResults(
+        [],
+        [
+          {
+            callable: 'testFn',
+            returnValue: testObject,
+            returnValueSummary: null,
+          },
+        ],
+        { indented: true, callResultMaxLength: 100 },
+      );
+
+      const nonIndentedFormatted = sandbox.formatScriptCallResults(
+        [],
+        [
+          {
+            callable: 'testFn',
+            returnValue: testObject,
+            returnValueSummary: null,
+          },
+        ],
+        { indented: false, callResultMaxLength: 100 },
+      );
+
+      expect(nonIndentedFormatted).toContain('{"a":1,"b":{"c":2}}');
+      expect(indentedFormatted).toContain(`{
+  "a": 1,
+  "b": {
+    "c": 2
+  }
+}`);
+      expect(indentedFormatted.length).toBeGreaterThan(
+        nonIndentedFormatted.length,
+      );
     });
   });
 });

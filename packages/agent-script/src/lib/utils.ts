@@ -1,6 +1,15 @@
 import { ChatCompletionMessageParam } from 'token.js';
 import { IChatMessage, Observation } from './types';
-import { TObject, TSchema, Hint, TEnum, TArray } from '@sinclair/typebox';
+import {
+  TObject,
+  TSchema,
+  Hint,
+  TEnum,
+  TArray,
+  Type,
+  TUnion,
+  Kind,
+} from '@sinclair/typebox';
 
 export function toChatCompletionMessageParam(
   messages: IChatMessage[],
@@ -50,7 +59,7 @@ export function observationToChatMessage(
   };
 }
 
-const MAX_LENGTH_TRUNCATE_CONTENT = 10000;
+export const MAX_LENGTH_TRUNCATE_CONTENT = 2000;
 
 export function truncateContent(
   content: string,
@@ -63,9 +72,20 @@ export function truncateContent(
   const halfLength = Math.floor(maxLength / 2);
   return (
     content.slice(0, halfLength) +
-    `\n..._This content has been truncated to stay below ${maxLength} characters_...\n` +
+    `\n\n-- Content has been truncated to be below ${maxLength} characters --\n\n` +
     content.slice(-halfLength)
   );
+}
+
+export function truncateContentTail(
+  content: string,
+  maxLength: number = MAX_LENGTH_TRUNCATE_CONTENT,
+): string {
+  if (content.length <= maxLength) {
+    return content;
+  }
+
+  return content.slice(0, maxLength) + ' ... (truncated)';
 }
 
 export function removeLeadingIndentation(
@@ -96,6 +116,10 @@ export function schemaToTypeString(schema: TSchema): string {
     return JSON.stringify((schema as any).const);
   }
 
+  const descriptionComment = schema.description
+    ? ` // ${schema.description}`
+    : '';
+
   // Handle objects recursively
   if (schema.type === 'object') {
     const objSchema = schema as TObject;
@@ -110,12 +134,29 @@ export function schemaToTypeString(schema: TSchema): string {
   // Handle arrays recursively
   if (schema.type === 'array') {
     const arraySchema = schema as any;
-    return `Array<${schemaToTypeString(arraySchema.items)}>`;
+    return `Array<${schemaToTypeString(
+      arraySchema.items,
+    )}>${descriptionComment}`;
   }
 
-  const descriptionComment = schema.description
-    ? ` // ${schema.description}`
-    : '';
+  switch (schema[Kind]) {
+    case 'Any':
+      return `any;${descriptionComment}`;
+    case 'Union':
+      return `// ${(schema as TUnion).anyOf
+        .map((o) => o.const)
+        .join(' | ')};${descriptionComment}`;
+    default:
+      break;
+  }
+
+  switch (schema[Hint]) {
+    case 'Enum':
+      return `// ${(schema as TEnum).anyOf
+        .map((o) => o.const)
+        .join(' | ')};${descriptionComment}`;
+  }
+
   // Handle primitive types
   switch (schema.type) {
     case 'string':
@@ -128,18 +169,8 @@ export function schemaToTypeString(schema: TSchema): string {
       return `boolean;${descriptionComment}`;
     case 'null':
       return `null;${descriptionComment}`;
-    default:
-      switch (schema[Hint]) {
-        case 'Enum':
-          return `// ${(schema as TEnum).anyOf
-            .map((o) => o.const)
-            .join(' | ')};${descriptionComment}`;
-        case 'Any':
-          return `any;${descriptionComment}`;
-        default:
-          return `unknown;${descriptionComment}`;
-      }
   }
+  return `unknown;${descriptionComment}`;
 }
 
 export function walkTypeboxSchema(
@@ -187,4 +218,30 @@ export function stableStringify(obj: any): string {
     return `${JSON.stringify(key)}:${stableStringify(obj[key])}`;
   });
   return `{${keyValuePairs.join(',')}}`;
+}
+
+export function formatBytes(bytes: number, decimals = 2): string {
+  if (bytes === 0) return '0 Bytes';
+
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+
+  return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(decimals))} ${
+    sizes[i]
+  }`;
+}
+
+export function createTSchemaFromType(type: string): TSchema {
+  switch (type) {
+    case 'string':
+      return Type.String();
+    case 'number':
+      return Type.Number();
+    case 'boolean':
+      return Type.Boolean();
+    case 'null':
+      return Type.Null();
+    default:
+      return Type.Any();
+  }
 }

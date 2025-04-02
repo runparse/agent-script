@@ -176,6 +176,10 @@ export interface IUdf {
     agent: IAgent,
   ): Promise<void>;
 
+  getCallResultSummary(
+    output: Static<this['outputSchema']>,
+  ): Promise<string | null>;
+
   call(
     input: Static<this['inputSchema']>,
     agent: IAgent,
@@ -184,11 +188,15 @@ export interface IUdf {
 
 export interface ICallableResult {
   returnValue: unknown;
+  returnValueSummary: string | null;
   callable: string;
 }
 
 export interface ISandbox {
-  register(callable: string, fn: (...fnArgs: any[]) => Promise<any>): void;
+  register(
+    callable: string,
+    fn: (...fnArgs: any[]) => Promise<ICallableResult>,
+  ): void;
   executeScript(script: string): Promise<{
     calls: ICallableResult[];
     returnValue: any;

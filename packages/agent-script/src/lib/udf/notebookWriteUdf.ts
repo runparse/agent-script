@@ -1,11 +1,12 @@
 import { BaseUdf } from './baseUdf';
 import { ICodeAgent } from '../types';
 import { Type, Static } from '@sinclair/typebox';
+import { formatBytes } from '../utils';
 
 export class NotebookWriteUdf extends BaseUdf {
   name = 'notebookWrite';
 
-  description = 'Write strings and objects to the notebook';
+  description = 'Write text and objects to the notebook';
 
   inputSchema = Type.Any();
 
@@ -36,18 +37,7 @@ export class NotebookWriteUdf extends BaseUdf {
 
     return {
       success: true,
-      contentSize: this.formatBytes(this.content.length),
+      contentSize: formatBytes(this.content.length),
     };
-  }
-
-  private formatBytes(bytes: number, decimals = 2): string {
-    if (bytes === 0) return '0 Bytes';
-
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-
-    return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(decimals))} ${
-      sizes[i]
-    }`;
   }
 }
